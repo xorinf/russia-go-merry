@@ -4,11 +4,13 @@ import FAQAccordion from '../components/ui/FAQAccordion';
 import api from '../utils/api';
 
 export default function FAQPage() {
+  // State management for API data, loading status, and potential errors
   const [grouped, setGrouped] = useState({});
   const [total, setTotal] = useState(0);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
 
+  // Fetch the pre-grouped FAQs from the backend as soon as the page loads
   useEffect(() => {
     api.get('/faq')
       .then((res) => {
@@ -19,6 +21,7 @@ export default function FAQPage() {
       .finally(() => setLoading(false));
   }, []);
 
+  // Extract and alphabetically sort the category names to use as keys and section headers
   const categories = Object.keys(grouped).sort();
 
   return (
@@ -26,7 +29,8 @@ export default function FAQPage() {
       <Navbar />
 
       <main className="max-w-3xl mx-auto px-6 py-10">
-        {/* Page header */}
+        
+        {/* Page Header: Displays the title and dynamic total counts */}
         <div className="mb-8">
           <h1 className="text-2xl font-semibold text-ink tracking-tight">
             Frequently Asked Questions
@@ -36,7 +40,7 @@ export default function FAQPage() {
           )}
         </div>
 
-        {/* Loading skeleton */}
+        {/* Loading Skeleton: Displays a pulsing placeholder to improve perceived performance */}
         {loading && (
           <div className="space-y-4">
             {[1, 2, 3].map((i) => (
@@ -52,19 +56,21 @@ export default function FAQPage() {
           </div>
         )}
 
-        {/* Error */}
+        {/* Error State: Gracefully handles and displays API connection issues */}
         {error && (
           <div className="rounded-xl bg-red-50 border border-red-100 p-4 text-sm text-red-600">
             {error}
           </div>
         )}
 
-        {/* FAQ groups */}
+        {/* Main Content: Maps over each category and renders its respective Accordion block */}
         {!loading && !error && (
           <div className="space-y-4">
             {categories.length === 0 ? (
+              // Empty state if the database has no FAQs
               <p className="text-center text-sm text-ink/40 py-16">No FAQs available yet.</p>
             ) : (
+              // Render a grouped accordion for each category
               categories.map((category) => (
                 <FAQAccordion
                   key={category}
