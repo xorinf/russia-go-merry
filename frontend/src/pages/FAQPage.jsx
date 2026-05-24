@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import Navbar from '../components/layout/Navbar';
 import FAQAccordion from '../components/ui/FAQAccordion';
+import { FAQDoodles } from '../components/ui/PageDoodles';
 import api from '../utils/api';
 
 export default function FAQPage() {
@@ -25,26 +26,27 @@ export default function FAQPage() {
   const categories = Object.keys(grouped).sort();
 
   return (
-    <div className="min-h-screen bg-cream">
+    <div className="min-h-screen bg-bg grid-bg relative">
+      <FAQDoodles />
       <Navbar />
 
-      <main className="max-w-3xl mx-auto px-6 py-10">
+      <main className="max-w-3xl mx-auto px-6 pt-24 pb-10 relative z-10">
         
-        {/* Page Header: Displays the title and dynamic total counts */}
+        {/* Page Header */}
         <div className="mb-8">
-          <h1 className="text-2xl font-semibold text-ink tracking-tight">
+          <h1 className="text-2xl font-serif text-ink tracking-tight">
             Frequently Asked Questions
           </h1>
           {total > 0 && (
-            <p className="mt-1.5 text-sm text-ink/45">{total} questions across {categories.length} categories</p>
+            <p className="mt-1.5 text-sm text-ink-soft">{total} questions across {categories.length} categories</p>
           )}
         </div>
 
-        {/* Loading Skeleton: Displays a pulsing placeholder to improve perceived performance */}
+        {/* Loading Skeleton */}
         {loading && (
           <div className="space-y-4">
             {[1, 2, 3].map((i) => (
-              <div key={i} className="bg-white rounded-xl border border-black/6 shadow-card overflow-hidden animate-pulse">
+              <div key={i} className="bg-card rounded-2xl border border-border shadow-subtle overflow-hidden animate-pulse">
                 <div className="h-9 bg-mist" />
                 <div className="p-5 space-y-3">
                   <div className="h-3 bg-mist rounded w-3/4" />
@@ -56,19 +58,19 @@ export default function FAQPage() {
           </div>
         )}
 
-        {/* Error State: Gracefully handles and displays API connection issues */}
+        {/* Error State */}
         {error && (
-          <div className="rounded-xl bg-red-50 border border-red-100 p-4 text-sm text-red-600">
+          <div className="rounded-2xl bg-danger-light border border-danger/15 p-4 text-sm text-danger">
             {error}
           </div>
         )}
 
-        {/* Main Content: Maps over each category and renders its respective Accordion block */}
+        {/* Main Content */}
         {!loading && !error && (
           <div className="space-y-4">
             {categories.length === 0 ? (
               // Empty state if the database has no FAQs
-              <p className="text-center text-sm text-ink/40 py-16">No FAQs available yet.</p>
+              <p className="text-center text-sm text-ink-soft py-16">No FAQs available yet.</p>
             ) : (
               // Render a grouped accordion for each category
               categories.map((category) => (
