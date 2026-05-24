@@ -1,6 +1,10 @@
 import React, { useEffect, useRef, useState, useCallback } from 'react';
 import Navbar from '../components/layout/Navbar';
 import CommunityPostCard from '../components/ui/CommunityPostCard';
+import Avatar from '../components/ui/Avatar';
+import Badge from '../components/ui/Badge';
+import Button from '../components/ui/Button';
+import { CommunityDoodles } from '../components/ui/PageDoodles';
 import api from '../utils/api';
 import { useAuth } from '../hooks/useAuth';
 
@@ -9,18 +13,6 @@ import { useAuth } from '../hooks/useAuth';
 // Formats a raw date string into a readable Indian date format (e.g., "24 May 2026")
 const formatDate = (d) =>
   new Date(d).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' });
-
-// Generates a consistent, colorful avatar based on the user's initials
-const Avatar = ({ name, size = 'sm' }) => {
-  const initials = (name || 'U').split(' ').map((n) => n[0]).join('').toUpperCase().slice(0, 2);
-  const colors = ['bg-sage-100 text-sage-700', 'bg-amber-100 text-amber-700', 'bg-blue-100 text-blue-700', 'bg-purple-100 text-purple-700'];
-  const color = colors[(name?.charCodeAt(0) || 0) % colors.length]; // Deterministic color based on name
-  return (
-    <div className={`${size === 'sm' ? 'w-7 h-7 text-xs' : 'w-9 h-9 text-sm'} rounded-full ${color} flex-shrink-0 flex items-center justify-center font-semibold`}>
-      {initials}
-    </div>
-  );
-};
 
 // ─── Post Detail Dialog ────────────────────────────────────────────────────
 function PostDetailDialog({ post: initialPost, onClose, currentUserId, userRole }) {
@@ -129,16 +121,16 @@ function PostDetailDialog({ post: initialPost, onClose, currentUserId, userRole 
       ref={dialogRef}
       closedby="any"
       aria-labelledby="post-dialog-title"
-      className="m-auto w-full max-w-2xl rounded-2xl border border-black/8 shadow-2xl bg-white p-0 backdrop:bg-ink/30 backdrop:backdrop-blur-sm"
+      className="m-auto w-full max-w-2xl rounded-2xl border border-border shadow-2xl bg-card p-0 backdrop:bg-ink/30 backdrop:backdrop-blur-sm"
       style={{ maxHeight: '90vh' }}
     >
       <div className="flex flex-col overflow-hidden" style={{ maxHeight: '90vh' }}>
 
         {/* Header Section */}
-        <div className="flex items-start justify-between gap-3 p-6 pb-4 border-b border-black/6">
+        <div className="flex items-start justify-between gap-3 p-6 pb-4 border-b border-border">
           <div className="flex items-start gap-3 flex-1 min-w-0">
             <div className={`flex-shrink-0 w-10 h-10 rounded-xl flex items-center justify-center mt-0.5
-              ${isAnswered ? 'bg-sage-50 text-sage-600' : 'bg-amber-50 text-amber-500'}`}>
+              ${isAnswered ? 'bg-success-light text-success' : 'bg-warning-light text-warning'}`}>
               {isAnswered ? (
                 <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
                   <path d="M3.5 9L7.5 13L14.5 5" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round"/>
@@ -156,13 +148,12 @@ function PostDetailDialog({ post: initialPost, onClose, currentUserId, userRole 
                 {post.title}
               </h2>
               <div className="flex items-center gap-2 mt-1.5 flex-wrap">
-                <span className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-medium
-                  ${isAnswered ? 'bg-sage-100 text-sage-800' : 'bg-amber-50 text-amber-700'}`}>
+                <Badge variant={isAnswered ? 'success' : 'warning'}>
                   {isAnswered ? '✓ Answered' : '○ Open'}
-                </span>
-                <span className="text-xs text-ink/40">by {post.author?.name || 'Student'}</span>
-                <span className="text-xs text-ink/30">·</span>
-                <span className="text-xs text-ink/40">{formatDate(post.createdAt)}</span>
+                </Badge>
+                <span className="text-xs text-ink-soft">by {post.author?.name || 'Student'}</span>
+                <span className="text-xs text-ink-faint">·</span>
+                <span className="text-xs text-ink-soft">{formatDate(post.createdAt)}</span>
               </div>
             </div>
           </div>
@@ -171,7 +162,7 @@ function PostDetailDialog({ post: initialPost, onClose, currentUserId, userRole 
           <button
             onClick={() => dialogRef.current?.close()}
             aria-label="Close dialog"
-            className="flex-shrink-0 w-8 h-8 rounded-full bg-mist flex items-center justify-center text-ink/50 hover:text-ink hover:bg-black/8 transition-all"
+            className="flex-shrink-0 w-8 h-8 rounded-full bg-mist flex items-center justify-center text-ink-soft hover:text-ink hover:bg-border transition-all"
           >
             <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
               <path d="M2 2L10 10M10 2L2 10" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
@@ -192,10 +183,10 @@ function PostDetailDialog({ post: initialPost, onClose, currentUserId, userRole 
             <button
               onClick={handleUpvote}
               disabled={upvoteLoading}
-              className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm font-medium transition-all duration-150
+              className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-xl text-sm font-medium transition-all duration-200
                 ${hasUpvoted
-                  ? 'bg-sage-100 text-sage-700 hover:bg-sage-200'
-                  : 'bg-mist text-ink/60 hover:bg-black/8 hover:text-ink'
+                  ? 'bg-accent-light text-accent hover:bg-accent/15'
+                  : 'bg-mist text-ink-soft hover:bg-border hover:text-ink'
                 } disabled:opacity-50`}
             >
               <svg width="14" height="14" viewBox="0 0 14 14" fill={hasUpvoted ? 'currentColor' : 'none'} stroke="currentColor" strokeWidth="1.5">
@@ -204,7 +195,7 @@ function PostDetailDialog({ post: initialPost, onClose, currentUserId, userRole 
               {hasUpvoted ? 'Upvoted' : 'Upvote'}
               <span className="font-semibold">{upvoteCount}</span>
             </button>
-            <span className="text-xs text-ink/35 flex items-center gap-1">
+            <span className="text-xs text-ink-faint flex items-center gap-1">
               <svg width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="currentColor" strokeWidth="1.5">
                 <path d="M1 2.5C1 1.67 1.67 1 2.5 1h7C10.33 1 11 1.67 11 2.5v5C11 8.33 10.33 9 9.5 9H7L4.5 11V9H2.5C1.67 9 1 8.33 1 7.5v-5z" strokeLinejoin="round"/>
               </svg>
@@ -213,22 +204,24 @@ function PostDetailDialog({ post: initialPost, onClose, currentUserId, userRole 
 
             {/* Resolve button strictly for admins */}
             {canResolve && !isAnswered && (
-              <button
+              <Button
+                variant="primary"
+                size="sm"
                 onClick={() => setShowResolveForm((v) => !v)}
-                className="ml-auto inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium bg-sage-600 text-white hover:bg-sage-700 transition-colors"
+                className="ml-auto"
               >
                 <svg width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="currentColor" strokeWidth="1.5">
                   <path d="M2 6L5 9L10 3" strokeLinecap="round" strokeLinejoin="round"/>
                 </svg>
                 Mark as Resolved
-              </button>
+              </Button>
             )}
           </div>
 
           {/* Official Answer Block (Only visible if resolved) */}
           {isAnswered && post.answer && (
-            <div className="mx-6 mb-4 rounded-xl bg-sage-50 border border-sage-200 p-4">
-              <p className="text-xs font-semibold text-sage-700 mb-2 uppercase tracking-wide flex items-center gap-1.5">
+            <div className="mx-6 mb-4 rounded-xl bg-success-light border border-success/20 p-4">
+              <p className="text-xs font-semibold text-success mb-2 uppercase tracking-wide flex items-center gap-1.5">
                 <svg width="12" height="12" viewBox="0 0 12 12" fill="currentColor">
                   <path d="M6 0L7.5 4.5H12L8.5 7L9.8 11.5L6 8.5L2.2 11.5L3.5 7L0 4.5H4.5L6 0Z"/>
                 </svg>
@@ -240,42 +233,34 @@ function PostDetailDialog({ post: initialPost, onClose, currentUserId, userRole 
 
           {/* Admin Resolve Form */}
           {showResolveForm && (
-            <form onSubmit={handleResolve} className="mx-6 mb-4 rounded-xl border border-sage-200 bg-sage-50 p-4">
-              <label className="block text-xs font-medium text-sage-700 mb-2">Write the official answer</label>
+            <form onSubmit={handleResolve} className="mx-6 mb-4 rounded-xl border border-accent/20 bg-accent-light p-4">
+              <label className="block text-xs font-medium text-accent mb-2">Write the official answer</label>
               <textarea
                 value={resolveText}
                 onChange={(e) => setResolveText(e.target.value)}
                 rows={3}
                 placeholder="Provide a clear, helpful answer…"
-                className="w-full rounded-lg border border-sage-200 bg-white px-3 py-2 text-sm text-ink placeholder-ink/35 focus:outline-none focus:ring-2 focus:ring-sage-400 resize-none"
+                className="w-full rounded-xl border border-accent/20 bg-card px-3 py-2 text-sm text-ink placeholder-ink-faint focus:outline-none focus:ring-2 focus:ring-accent/30 resize-none"
               />
               <div className="flex gap-2 mt-2">
-                <button
-                  type="submit"
-                  disabled={resolveLoading || !resolveText.trim()}
-                  className="px-4 py-1.5 rounded-lg bg-sage-600 text-white text-xs font-medium hover:bg-sage-700 transition-colors disabled:opacity-50"
-                >
-                  {resolveLoading ? 'Saving…' : 'Save Answer'}
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setShowResolveForm(false)}
-                  className="px-4 py-1.5 rounded-lg bg-white text-ink/60 text-xs font-medium hover:bg-mist transition-colors border border-black/8"
-                >
+                <Button type="submit" size="sm" loading={resolveLoading} disabled={!resolveText.trim()}>
+                  Save Answer
+                </Button>
+                <Button type="button" variant="secondary" size="sm" onClick={() => setShowResolveForm(false)}>
                   Cancel
-                </button>
+                </Button>
               </div>
             </form>
           )}
 
           {/* User Comments List */}
           <div className="px-6 pb-2">
-            <h3 className="text-xs font-semibold text-ink/50 uppercase tracking-wider mb-3">
+            <h3 className="text-xs font-semibold text-ink-soft uppercase tracking-wider mb-3">
               Comments ({post.comments?.length ?? 0})
             </h3>
 
             {post.comments?.length === 0 ? (
-              <p className="text-sm text-ink/35 py-2">No comments yet. Be the first to comment!</p>
+              <p className="text-sm text-ink-faint py-2">No comments yet. Be the first to comment!</p>
             ) : (
               <div className="space-y-3">
                 {post.comments.map((c, i) => (
@@ -284,7 +269,7 @@ function PostDetailDialog({ post: initialPost, onClose, currentUserId, userRole 
                     <div className="flex-1 bg-mist rounded-xl px-3 py-2.5">
                       <div className="flex items-center gap-2 mb-1">
                         <span className="text-xs font-medium text-ink">{c.author?.name || 'User'}</span>
-                        <span className="text-xs text-ink/30">{formatDate(c.createdAt)}</span>
+                        <span className="text-xs text-ink-faint">{formatDate(c.createdAt)}</span>
                       </div>
                       <p className="text-sm text-ink/75 leading-relaxed">{c.body}</p>
                     </div>
@@ -302,7 +287,7 @@ function PostDetailDialog({ post: initialPost, onClose, currentUserId, userRole 
                 onChange={(e) => setCommentText(e.target.value)}
                 rows={2}
                 placeholder="Write a comment…"
-                className="flex-1 rounded-xl border border-black/10 bg-mist px-3 py-2.5 text-sm text-ink placeholder-ink/35 focus:outline-none focus:ring-2 focus:ring-sage-400 focus:bg-white transition-all resize-none"
+                className="flex-1 rounded-xl border border-border bg-mist px-3 py-2.5 text-sm text-ink placeholder-ink-faint focus:outline-none focus:ring-2 focus:ring-accent/25 focus:bg-card transition-all resize-none"
                 onKeyDown={(e) => {
                   // Submit form on raw Enter key, allow newlines via Shift+Enter
                   if (e.key === 'Enter' && !e.shiftKey) {
@@ -311,15 +296,17 @@ function PostDetailDialog({ post: initialPost, onClose, currentUserId, userRole 
                   }
                 }}
               />
-              <button
+              <Button
                 type="submit"
-                disabled={commentLoading || !commentText.trim()}
-                className="flex-shrink-0 mt-0.5 px-4 py-2.5 rounded-xl bg-sage-600 text-white text-sm font-medium hover:bg-sage-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                size="md"
+                disabled={!commentText.trim()}
+                loading={commentLoading}
+                className="flex-shrink-0 mt-0.5"
               >
-                {commentLoading ? '…' : 'Post'}
-              </button>
+                Post
+              </Button>
             </div>
-            <p className="text-xs text-ink/30 mt-1.5 ml-1">Press Enter to post, Shift+Enter for newline</p>
+            <p className="text-xs text-ink-faint mt-1.5 ml-1">Press Enter to post, Shift+Enter for newline</p>
           </form>
         </div>
       </div>
@@ -391,20 +378,19 @@ function CreatePostDialog({ onClose, onCreated }) {
       ref={dialogRef}
       closedby="any"
       aria-labelledby="create-post-title"
-      className="m-auto w-full max-w-lg rounded-2xl border border-black/8 shadow-2xl bg-white p-0 backdrop:bg-ink/30 backdrop:backdrop-blur-sm"
+      className="m-auto w-full max-w-lg rounded-2xl border border-border shadow-2xl bg-card p-0 backdrop:bg-ink/30 backdrop:backdrop-blur-sm"
     >
-      {/* Form UI logic omitted for brevity, but structurally solid! */}
       <div className="p-6">
         {/* Header */}
         <div className="flex items-center justify-between mb-5">
           <div>
             <h2 id="create-post-title" className="text-base font-semibold text-ink">Ask a Question</h2>
-            <p className="text-xs text-ink/45 mt-0.5">Share your question with the community</p>
+            <p className="text-xs text-ink-soft mt-0.5">Share your question with the community</p>
           </div>
           <button
             onClick={() => dialogRef.current?.close()}
             aria-label="Close dialog"
-            className="w-8 h-8 rounded-full bg-mist flex items-center justify-center text-ink/50 hover:text-ink hover:bg-black/8 transition-all"
+            className="w-8 h-8 rounded-full bg-mist flex items-center justify-center text-ink-soft hover:text-ink hover:bg-border transition-all"
           >
             <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
               <path d="M2 2L10 10M10 2L2 10" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
@@ -414,8 +400,8 @@ function CreatePostDialog({ onClose, onCreated }) {
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
-            <label htmlFor="post-title" className="block text-xs font-medium text-ink/70 mb-1.5">
-              Title <span className="text-red-400">*</span>
+            <label htmlFor="post-title" className="block text-xs font-medium text-ink-soft mb-1.5">
+              Title <span className="text-danger">*</span>
             </label>
             <input
               id="post-title"
@@ -425,14 +411,14 @@ function CreatePostDialog({ onClose, onCreated }) {
               placeholder="E.g. How do I request leave during the internship?"
               maxLength={150}
               required
-              className="w-full rounded-xl border border-black/10 bg-mist px-3 py-2.5 text-sm text-ink placeholder-ink/35 focus:outline-none focus:ring-2 focus:ring-sage-400 focus:bg-white transition-all"
+              className="w-full rounded-xl border border-border bg-mist px-3 py-2.5 text-sm text-ink placeholder-ink-faint focus:outline-none focus:ring-2 focus:ring-accent/25 focus:bg-card transition-all"
             />
-            <p className="text-xs text-ink/30 mt-1 text-right">{title.length}/150</p>
+            <p className="text-xs text-ink-faint mt-1 text-right">{title.length}/150</p>
           </div>
 
           <div>
-            <label htmlFor="post-body" className="block text-xs font-medium text-ink/70 mb-1.5">
-              Description <span className="text-red-400">*</span>
+            <label htmlFor="post-body" className="block text-xs font-medium text-ink-soft mb-1.5">
+              Description <span className="text-danger">*</span>
             </label>
             <textarea
               id="post-body"
@@ -442,30 +428,31 @@ function CreatePostDialog({ onClose, onCreated }) {
               placeholder="Describe your question in detail. Include any context that might be helpful…"
               maxLength={2000}
               required
-              className="w-full rounded-xl border border-black/10 bg-mist px-3 py-2.5 text-sm text-ink placeholder-ink/35 focus:outline-none focus:ring-2 focus:ring-sage-400 focus:bg-white transition-all resize-none"
+              className="w-full rounded-xl border border-border bg-mist px-3 py-2.5 text-sm text-ink placeholder-ink-faint focus:outline-none focus:ring-2 focus:ring-accent/25 focus:bg-card transition-all resize-none"
             />
-            <p className="text-xs text-ink/30 mt-1 text-right">{body.length}/2000</p>
+            <p className="text-xs text-ink-faint mt-1 text-right">{body.length}/2000</p>
           </div>
 
           {error && (
-            <p className="text-xs text-red-500 bg-red-50 border border-red-100 rounded-lg px-3 py-2">{error}</p>
+            <p className="text-xs text-danger bg-danger-light border border-danger/15 rounded-xl px-3 py-2">{error}</p>
           )}
 
           <div className="flex gap-2 pt-1">
-            <button
+            <Button
               type="submit"
-              disabled={loading || !title.trim() || !body.trim()}
-              className="flex-1 py-2.5 rounded-xl bg-sage-600 text-white text-sm font-medium hover:bg-sage-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              loading={loading}
+              disabled={!title.trim() || !body.trim()}
+              className="flex-1"
             >
-              {loading ? 'Posting…' : 'Post Question'}
-            </button>
-            <button
+              Post Question
+            </Button>
+            <Button
               type="button"
+              variant="secondary"
               onClick={() => dialogRef.current?.close()}
-              className="px-5 py-2.5 rounded-xl border border-black/10 text-ink/60 text-sm font-medium hover:bg-mist transition-colors"
             >
               Cancel
-            </button>
+            </Button>
           </div>
         </form>
       </div>
@@ -539,37 +526,37 @@ export default function CommunityPage() {
   const unansweredCount = posts.filter((p) => p.status === 'unanswered').length;
 
   return (
-    <div className="min-h-screen bg-cream">
+    <div className="min-h-screen bg-bg grid-bg relative">
+      <CommunityDoodles />
       <Navbar />
 
-      <main className="max-w-3xl mx-auto px-6 py-10">
+      <main className="max-w-3xl mx-auto px-6 pt-24 pb-10 relative z-10">
         
-        {/* Header Block omitted for brevity */}
+        {/* Header Block */}
         <div className="flex items-start justify-between gap-4 mb-8">
           <div>
-            <h1 className="text-2xl font-semibold text-ink tracking-tight">Community Board</h1>
+            <h1 className="text-2xl font-serif text-ink tracking-tight">Community Board</h1>
             {!loading && (
-              <p className="mt-1.5 text-sm text-ink/45">
+              <p className="mt-1.5 text-sm text-ink-soft">
                 {total} discussions · {answeredCount} answered · {unansweredCount} open
               </p>
             )}
           </div>
-          <button
+          <Button
             onClick={() => setShowCreate(true)}
             id="ask-question-btn"
-            className="flex-shrink-0 inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-sage-600 text-white text-sm font-medium hover:bg-sage-700 active:bg-sage-800 transition-colors shadow-sm"
           >
             <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
               <path d="M7 2V12M2 7H12" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
             </svg>
             Ask a Question
-          </button>
+          </Button>
         </div>
 
-        {/* Search Input omitted for brevity */}
+        {/* Search Input */}
         {!loading && total > 0 && (
           <div className="relative mb-4">
-            <svg className="absolute left-3 top-1/2 -translate-y-1/2 text-ink/30" width="14" height="14" viewBox="0 0 14 14" fill="none">
+            <svg className="absolute left-3 top-1/2 -translate-y-1/2 text-ink-faint" width="14" height="14" viewBox="0 0 14 14" fill="none">
               <circle cx="6" cy="6" r="4.5" stroke="currentColor" strokeWidth="1.4"/>
               <path d="M10 10L12.5 12.5" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round"/>
             </svg>
@@ -578,16 +565,16 @@ export default function CommunityPage() {
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               placeholder="Search questions…"
-              className="w-full pl-9 pr-4 py-2.5 rounded-xl border border-black/10 bg-white text-sm text-ink placeholder-ink/35 focus:outline-none focus:ring-2 focus:ring-sage-400 transition-all"
+              className="w-full pl-9 pr-4 py-2.5 rounded-xl border border-border bg-card text-sm text-ink placeholder-ink-faint focus:outline-none focus:ring-2 focus:ring-accent/25 transition-all"
             />
           </div>
         )}
 
-        {/* Filter and Sort Controls omitted for brevity */}
+        {/* Filter and Sort Controls */}
         {!loading && !error && total > 0 && (
           <div className="flex items-center justify-between gap-3 mb-5 flex-wrap">
             {/* Filter tabs */}
-            <div className="flex gap-1 p-1 bg-mist rounded-lg w-fit">
+            <div className="flex gap-1 p-1 bg-mist rounded-xl w-fit">
               {[
                 { key: 'all', label: 'All' },
                 { key: 'answered', label: 'Answered' },
@@ -596,8 +583,8 @@ export default function CommunityPage() {
                 <button
                   key={key}
                   onClick={() => setFilter(key)}
-                  className={`px-4 py-1.5 rounded-md text-xs font-medium transition-all duration-150
-                    ${filter === key ? 'bg-white text-ink shadow-card' : 'text-ink/50 hover:text-ink'}`}
+                  className={`px-4 py-1.5 rounded-lg text-xs font-medium transition-all duration-200
+                    ${filter === key ? 'bg-card text-ink shadow-subtle' : 'text-ink-soft hover:text-ink'}`}
                 >
                   {label}
                 </button>
@@ -608,7 +595,7 @@ export default function CommunityPage() {
             <select
               value={sort}
               onChange={(e) => setSort(e.target.value)}
-              className="px-3 py-1.5 rounded-lg border border-black/10 bg-white text-xs text-ink/70 focus:outline-none focus:ring-2 focus:ring-sage-400 cursor-pointer"
+              className="px-3 py-1.5 rounded-xl border border-border bg-card text-xs text-ink-soft focus:outline-none focus:ring-2 focus:ring-accent/25 cursor-pointer"
             >
               <option value="newest">Newest first</option>
               <option value="oldest">Oldest first</option>
@@ -622,8 +609,8 @@ export default function CommunityPage() {
         {loading && (
           <div className="space-y-3">
             {[1, 2, 3, 4, 5].map((i) => (
-              <div key={i} className="bg-white rounded-xl border border-black/6 shadow-card p-4 flex items-start gap-4 animate-pulse">
-                <div className="w-9 h-9 rounded-lg bg-mist flex-shrink-0" />
+              <div key={i} className="bg-card rounded-2xl border border-border shadow-subtle p-4 flex items-start gap-4 animate-pulse">
+                <div className="w-9 h-9 rounded-xl bg-mist flex-shrink-0" />
                 <div className="flex-1 space-y-2">
                   <div className="h-3.5 bg-mist rounded w-3/4" />
                   <div className="h-3 bg-mist rounded w-1/2" />
@@ -636,7 +623,7 @@ export default function CommunityPage() {
 
         {/* Display Global API Error if fetch fails */}
         {error && (
-          <div className="rounded-xl bg-red-50 border border-red-100 p-4 text-sm text-red-600">
+          <div className="rounded-2xl bg-danger-light border border-danger/15 p-4 text-sm text-danger">
             {error}
           </div>
         )}
@@ -645,26 +632,23 @@ export default function CommunityPage() {
         {!loading && !error && total === 0 && (
           <div className="flex flex-col items-center justify-center py-20 text-center">
             <div className="w-16 h-16 rounded-2xl bg-mist flex items-center justify-center mb-4">
-              <svg width="28" height="28" viewBox="0 0 28 28" fill="none" stroke="currentColor" className="text-ink/30" strokeWidth="1.5">
+              <svg width="28" height="28" viewBox="0 0 28 28" fill="none" stroke="currentColor" className="text-ink-faint" strokeWidth="1.5">
                 <circle cx="14" cy="14" r="11"/>
                 <path d="M14 8.5V14.5" strokeLinecap="round"/>
                 <circle cx="14" cy="18" r="1" fill="currentColor" stroke="none"/>
               </svg>
             </div>
-            <p className="text-sm font-medium text-ink/60">No discussions yet</p>
-            <p className="text-xs text-ink/35 mt-1">Be the first to ask a question!</p>
-            <button
-              onClick={() => setShowCreate(true)}
-              className="mt-4 px-4 py-2 rounded-xl bg-sage-600 text-white text-sm font-medium hover:bg-sage-700 transition-colors"
-            >
+            <p className="text-sm font-medium text-ink-soft">No discussions yet</p>
+            <p className="text-xs text-ink-faint mt-1">Be the first to ask a question!</p>
+            <Button onClick={() => setShowCreate(true)} className="mt-4">
               Ask a Question
-            </button>
+            </Button>
           </div>
         )}
 
         {/* Display Message if filters hide everything */}
         {!loading && !error && total > 0 && visible.length === 0 && (
-          <p className="text-center text-sm text-ink/40 py-16">
+          <p className="text-center text-sm text-ink-soft py-16">
             No posts match your current filters.
           </p>
         )}
