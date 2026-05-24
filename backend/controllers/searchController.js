@@ -147,7 +147,7 @@ export const semanticSearch = async (req, res) => {
       // If it's a good text match, keep it
       if (doc.textScore > 0) return true;
       // If no text match, require a minimum semantic similarity
-      return doc.vectorScore > 0.65;
+      return doc.vectorScore > 0.80;
     }).slice(0, 5); // Return top 5
 
     // 6. Cache and Log
