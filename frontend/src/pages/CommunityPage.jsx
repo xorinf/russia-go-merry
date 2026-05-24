@@ -530,14 +530,14 @@ export default function CommunityPage() {
       <CommunityDoodles />
       <Navbar />
 
-      <main className="max-w-3xl mx-auto px-6 pt-24 pb-10 relative z-10">
+      <main className="max-w-3xl mx-auto px-4 sm:px-6 pt-20 sm:pt-24 pb-8 sm:pb-10 relative z-10">
         
         {/* Header Block */}
-        <div className="flex items-start justify-between gap-4 mb-8">
-          <div>
-            <h1 className="text-2xl font-serif text-ink tracking-tight">Community Board</h1>
+        <div className="flex items-start justify-between gap-3 sm:gap-4 mb-6 sm:mb-8">
+          <div className="min-w-0">
+            <h1 className="text-xl sm:text-2xl font-serif text-ink tracking-tight">Community Board</h1>
             {!loading && (
-              <p className="mt-1.5 text-sm text-ink-soft">
+              <p className="mt-1 sm:mt-1.5 text-xs sm:text-sm text-ink-soft truncate">
                 {total} discussions · {answeredCount} answered · {unansweredCount} open
               </p>
             )}
@@ -545,11 +545,14 @@ export default function CommunityPage() {
           <Button
             onClick={() => setShowCreate(true)}
             id="ask-question-btn"
+            size="sm"
+            className="sm:!px-5 sm:!py-2.5 sm:!text-sm flex-shrink-0"
           >
             <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
               <path d="M7 2V12M2 7H12" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
             </svg>
-            Ask a Question
+            <span className="hidden sm:inline">Ask a Question</span>
+            <span className="sm:hidden">Ask</span>
           </Button>
         </div>
 

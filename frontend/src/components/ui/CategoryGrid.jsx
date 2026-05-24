@@ -87,31 +87,31 @@ export default function CategoryGrid() {
   const navigate = useNavigate();
 
   return (
-    <div className="bg-card rounded-2xl border border-border p-6 shadow-subtle">
+    <div className="bg-card rounded-2xl border border-border p-4 sm:p-6 shadow-subtle">
       {/* Header */}
-      <div className="flex items-center gap-2 mb-5">
+      <div className="flex items-center gap-2 mb-4 sm:mb-5">
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#6b6b6b" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
           <path d="M12 2l1.09 3.26L16 6l-2.91.74L12 10l-1.09-3.26L8 6l2.91-.74L12 2z"/>
           <path d="M5 15l.54 1.63L7 17.17l-1.46.37L5 19.17l-.54-1.63L3 17.17l1.46-.37L5 15z"/>
           <path d="M19 11l.54 1.63L21 13.17l-1.46.37L19 15.17l-.54-1.63L17 13.17l1.46-.37L19 11z"/>
         </svg>
-        <h3 className="font-serif text-lg text-ink">
+        <h3 className="font-serif text-base sm:text-lg text-ink">
           Explore Categories
         </h3>
       </div>
 
-      {/* Grid */}
-      <div className="grid grid-cols-4 gap-2 categories-scroll md:grid">
+      {/* Grid — scrollable on mobile, 4-col grid on sm+ */}
+      <div className="flex overflow-x-auto gap-2 pb-2 sm:pb-0 sm:grid sm:grid-cols-4 sm:overflow-visible scrollbar-hide">
         {categories.map((cat, i) => (
           <button
             key={i}
             onClick={() => navigate('/faq')}
-            className="flex flex-col items-center gap-2.5 p-3 rounded-xl border border-transparent hover:border-border hover:bg-bg transition-all duration-200 cursor-pointer group"
+            className="flex flex-col items-center gap-2 sm:gap-2.5 p-2.5 sm:p-3 rounded-xl border border-transparent hover:border-border hover:bg-bg transition-all duration-200 cursor-pointer group flex-shrink-0 min-w-[72px] sm:min-w-0"
           >
-            <div className="w-12 h-12 rounded-xl flex items-center justify-center bg-bg border border-border/50 group-hover:scale-105 transition-transform duration-200">
+            <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-xl flex items-center justify-center bg-bg border border-border/50 group-hover:scale-105 transition-transform duration-200">
               {cat.icon}
             </div>
-            <span className="text-xs font-medium text-ink-soft group-hover:text-ink transition-colors">
+            <span className="text-[10px] sm:text-xs font-medium text-ink-soft group-hover:text-ink transition-colors whitespace-nowrap">
               {cat.name}
             </span>
           </button>
@@ -121,7 +121,7 @@ export default function CategoryGrid() {
       {/* Browse all */}
       <button
         onClick={() => navigate('/faq')}
-        className="mt-4 w-full flex items-center justify-center gap-1.5 text-xs font-medium text-ink-soft hover:text-accent transition-colors cursor-pointer py-1"
+        className="mt-3 sm:mt-4 w-full flex items-center justify-center gap-1.5 text-xs font-medium text-ink-soft hover:text-accent transition-colors cursor-pointer py-1"
       >
         Browse all categories
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">

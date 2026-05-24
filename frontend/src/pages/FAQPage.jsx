@@ -30,11 +30,11 @@ export default function FAQPage() {
       <FAQDoodles />
       <Navbar />
 
-      <main className="max-w-3xl mx-auto px-6 pt-24 pb-10 relative z-10">
+      <main className="max-w-3xl mx-auto px-4 sm:px-6 pt-20 sm:pt-24 pb-8 sm:pb-10 relative z-10">
         
         {/* Page Header */}
-        <div className="mb-8">
-          <h1 className="text-2xl font-serif text-ink tracking-tight">
+        <div className="mb-6 sm:mb-8">
+          <h1 className="text-xl sm:text-2xl font-serif text-ink tracking-tight">
             Frequently Asked Questions
           </h1>
           {total > 0 && (

@@ -129,13 +129,13 @@ export default function HomePage() {
     <div className="min-h-screen bg-bg grid-bg">
       <Navbar />
 
-      <main className="max-w-[1200px] mx-auto px-6 pt-24 pb-8">
+      <main className="max-w-[1200px] mx-auto px-4 sm:px-6 pt-20 sm:pt-24 pb-8">
         
         {/* Hero heading */}
         <section className="relative text-center mb-8">
           <DoodleElements />
 
-          <h1 className="font-serif text-4xl sm:text-5xl md:text-[3.2rem] leading-[1.15] tracking-tight text-ink mb-3">
+          <h1 className="font-serif text-[1.75rem] sm:text-4xl md:text-5xl lg:text-[3.2rem] leading-[1.15] tracking-tight text-ink mb-3">
             Ask. Discover. Get{' '}
             <span className="doodle-underline font-serif" style={{ fontWeight: 700 }}>Solved.</span>
             <svg className="inline-block ml-2 align-middle" width="24" height="18" viewBox="0 0 24 18" style={{ opacity: 0.18 }}>
@@ -143,7 +143,7 @@ export default function HomePage() {
             </svg>
           </h1>
 
-          <p className="text-base text-ink-soft mb-8 max-w-lg leading-relaxed mx-auto">
+          <p className="text-sm sm:text-base text-ink-soft mb-6 sm:mb-8 max-w-lg leading-relaxed mx-auto px-2">
             Search your doubt or explore solved questions from the community.
           </p>
         </section>
@@ -151,8 +151,8 @@ export default function HomePage() {
         {/* Search + Categories Row */}
         {!isSearchActive ? (
           /* Default layout: Search + Popular Searches | Category Grid side by side */
-          <section className="flex flex-col lg:flex-row items-start justify-center gap-8 mb-10 mx-auto" style={{ maxWidth: '980px' }}>
-            <div className="w-full lg:flex-1" style={{ maxWidth: '540px' }}>
+          <section className="flex flex-col lg:flex-row items-stretch lg:items-start justify-center gap-5 sm:gap-8 mb-8 sm:mb-10 mx-auto" style={{ maxWidth: '980px' }}>
+            <div className="w-full lg:flex-1 lg:max-w-[540px]">
               <SearchBar
                 ref={searchBarRef}
                 onResults={setResults}
@@ -160,7 +160,7 @@ export default function HomePage() {
               />
               <TrendingQueries onQueryClick={handleTrendingClick} />
             </div>
-            <div className="w-full lg:flex-shrink-0" style={{ width: '380px', maxWidth: '100%' }}>
+            <div className="w-full lg:w-[380px] lg:flex-shrink-0">
               <CategoryGrid />
             </div>
           </section>
@@ -189,7 +189,7 @@ export default function HomePage() {
 
         {/* Top Solved + Trending Issues Row */}
         {!isSearchActive && (
-          <section className="grid grid-cols-1 lg:grid-cols-[1fr_340px] gap-8 items-start">
+          <section className="grid grid-cols-1 lg:grid-cols-[1fr_340px] gap-5 sm:gap-8 items-start">
             <TopSolved />
             <div className="lg:mt-14 mt-0">
               <TrendingIssues />

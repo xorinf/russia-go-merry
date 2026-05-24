@@ -5,8 +5,8 @@ export default function CTA() {
   const navigate = useNavigate();
 
   return (
-    <section className="mt-14 mb-8">
-      <div className="bg-card rounded-2xl border border-border p-8 md:p-10 flex flex-col md:flex-row items-center justify-between gap-6 relative overflow-hidden">
+    <section className="mt-8 sm:mt-14 mb-6 sm:mb-8">
+      <div className="bg-card rounded-2xl border border-border p-5 sm:p-8 md:p-10 flex flex-col md:flex-row items-center justify-between gap-4 sm:gap-6 relative overflow-hidden">
         {/* Background doodle elements */}
         <svg className="absolute top-4 right-8" width="50" height="35" viewBox="0 0 50 35" style={{ opacity: 0.07, pointerEvents: 'none' }}>
           <path d="M5 28 Q15 5 28 18 Q42 32 48 8" stroke="#1f1f1f" strokeWidth="1.5" fill="none" strokeLinecap="round"/>
@@ -47,7 +47,7 @@ export default function CTA() {
         {/* Button */}
         <button
           onClick={() => navigate('/community')}
-          className="flex-shrink-0 px-7 py-3.5 bg-ink text-white text-sm font-semibold rounded-xl hover:bg-ink/85 hover:shadow-lg transition-all cursor-pointer"
+          className="flex-shrink-0 w-full sm:w-auto px-7 py-3 sm:py-3.5 bg-ink text-white text-sm font-semibold rounded-xl hover:bg-ink/85 hover:shadow-lg transition-all cursor-pointer text-center"
         >
           Ask a New Question
         </button>

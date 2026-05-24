@@ -56,7 +56,7 @@ export default function Navbar() {
           : 'bg-transparent border-b border-transparent'
         }`}
     >
-      <div className="max-w-[1200px] mx-auto px-6 h-16 flex items-center justify-between relative">
+      <div className="max-w-[1200px] mx-auto px-4 sm:px-6 h-14 sm:h-16 flex items-center justify-between relative">
 
         {/* ── Logo ── */}
         <NavLink to="/" className="flex items-center gap-2.5 group flex-shrink-0">
@@ -76,7 +76,7 @@ export default function Navbar() {
 
         {/* ── Center Pill Group (Desktop) ── */}
         <div
-          className="hidden md:flex items-center gap-1.5 px-1.5 py-[5px] rounded-full border-[1.5px] border-border bg-white/50 backdrop-blur-[12px] absolute left-1/2 -translate-x-1/2"
+          className="hidden lg:flex items-center gap-1.5 px-1.5 py-[5px] rounded-full border-[1.5px] border-border bg-white/50 backdrop-blur-[12px] absolute left-1/2 -translate-x-1/2"
         >
           {navItems.map(({ label, to }) => (
             <NavLink
@@ -98,16 +98,16 @@ export default function Navbar() {
           {/* Ask Question CTA — desktop only */}
           <button
             onClick={() => navigate('/community')}
-            className="hidden md:flex items-center px-5 py-[7px] text-[0.82rem] font-semibold text-ink bg-transparent border-[1.5px] border-ink rounded-full cursor-pointer transition-all duration-300 ease-smooth tracking-[0.01em] leading-none hover:bg-ink hover:text-white hover:shadow-[0_4px_16px_rgba(0,0,0,0.15)] hover:-translate-y-px active:translate-y-0"
+            className="hidden lg:flex items-center px-5 py-[7px] text-[0.82rem] font-semibold text-ink bg-transparent border-[1.5px] border-ink rounded-full cursor-pointer transition-all duration-300 ease-smooth tracking-[0.01em] leading-none hover:bg-ink hover:text-white hover:shadow-[0_4px_16px_rgba(0,0,0,0.15)] hover:-translate-y-px active:translate-y-0"
           >
             Ask Question
           </button>
 
           {/* Divider — desktop only */}
-          <div className="hidden md:block w-px h-6 bg-border mx-1" />
+          <div className="hidden lg:block w-px h-6 bg-border mx-1" />
 
           {/* Notification bell — desktop only */}
-          <button className="hidden md:flex w-9 h-9 items-center justify-center rounded-full hover:bg-black/[0.04] transition-colors relative cursor-pointer">
+          <button className="hidden lg:flex w-9 h-9 items-center justify-center rounded-full hover:bg-black/[0.04] transition-colors relative cursor-pointer">
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#6b6b6b" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
               <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/>
               <path d="M13.73 21a2 2 0 0 1-3.46 0"/>
@@ -156,7 +156,7 @@ export default function Navbar() {
           {/* Mobile hamburger */}
           <button
             onClick={() => setMobileOpen(!mobileOpen)}
-            className="md:hidden flex w-9 h-9 items-center justify-center rounded-[10px] hover:bg-black/[0.04] transition-colors"
+            className="lg:hidden flex w-9 h-9 items-center justify-center rounded-[10px] hover:bg-black/[0.04] transition-colors"
             aria-label="Toggle menu"
           >
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
@@ -179,7 +179,7 @@ export default function Navbar() {
 
       {/* ── Mobile Dropdown ── */}
       <div
-        className={`md:hidden overflow-hidden transition-all duration-[350ms] ease-smooth ${
+        className={`lg:hidden overflow-hidden transition-all duration-[350ms] ease-smooth ${
           mobileOpen ? 'max-h-80 opacity-100' : 'max-h-0 opacity-0'
         }`}
         style={{
