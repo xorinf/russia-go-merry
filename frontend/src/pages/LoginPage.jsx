@@ -3,20 +3,26 @@ import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
 
 export default function LoginPage() {
+  // Access the global login function and routing navigation
   const { login } = useAuth();
   const navigate = useNavigate();
 
+  // Local state for form inputs, error messages, and API loading status
   const [form, setForm] = useState({ email: '', password: '' });
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
 
+  // Generic input handler: updates specific field by name and clears any active errors
   const handleChange = (e) => {
     setForm((f) => ({ ...f, [e.target.name]: e.target.value }));
     setError('');
   };
 
+  // Handles the form submission and authentication flow
   const handleSubmit = async (e) => {
-    e.preventDefault();
+    e.preventDefault(); // Prevent the browser from refreshing the page
+    
+    // Basic frontend validation to ensure fields aren't empty
     if (!form.email || !form.password) {
       setError('Please enter your email and password.');
       return;
@@ -24,9 +30,14 @@ export default function LoginPage() {
 
     setLoading(true);
     try {
+      // Attempt to authenticate using the context helper
       await login(form.email.trim(), form.password);
+      
+      // On success, redirect to the dashboard and replace the history stack 
+      // so the user can't hit "back" to return to the login screen
       navigate('/', { replace: true });
     } catch (err) {
+      // Display the specific error from the backend, or fallback to a generic message
       setError(err.response?.data?.message || 'Login failed. Please try again.');
     } finally {
       setLoading(false);
@@ -35,9 +46,10 @@ export default function LoginPage() {
 
   return (
     <div className="min-h-screen bg-cream flex flex-col items-center justify-center px-4">
-      {/* Card */}
+      {/* Centered Login Card */}
       <div className="w-full max-w-sm">
-        {/* Logo mark */}
+        
+        {/* Brand Logo & Header */}
         <div className="flex flex-col items-center mb-8">
           <div className="w-11 h-11 rounded-xl bg-sage-600 flex items-center justify-center mb-4 shadow-float">
             <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
@@ -53,6 +65,8 @@ export default function LoginPage() {
           <h2 className="text-sm font-semibold text-ink mb-5">Sign in to your account</h2>
 
           <form onSubmit={handleSubmit} className="space-y-4" noValidate>
+            
+            {/* Email Input Field */}
             <div>
               <label htmlFor="email" className="block text-xs font-medium text-ink/60 mb-1.5">
                 Email
@@ -69,6 +83,7 @@ export default function LoginPage() {
               />
             </div>
 
+            {/* Password Input Field */}
             <div>
               <label htmlFor="password" className="block text-xs font-medium text-ink/60 mb-1.5">
                 Password
@@ -85,12 +100,14 @@ export default function LoginPage() {
               />
             </div>
 
+            {/* Conditionally rendered error message block */}
             {error && (
               <p className="text-xs text-red-600 bg-red-50 border border-red-100 rounded-lg px-3 py-2">
                 {error}
               </p>
             )}
 
+            {/* Submit Button with Loading State */}
             <button
               type="submit"
               disabled={loading}
@@ -107,7 +124,7 @@ export default function LoginPage() {
             </button>
           </form>
 
-          {/* Hint for testing */}
+          {/* Registration Link Fallback */}
           <p className="text-center text-xs text-ink/60 mt-4">
             Don't have an account?{' '}
             <Link to="/register" className="text-sage-600 hover:text-sage-700 font-medium transition-colors">
