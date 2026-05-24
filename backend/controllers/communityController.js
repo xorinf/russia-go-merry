@@ -3,6 +3,7 @@ import CommunityPost from '../models/CommunityPost.js';
 // GET /api/community — All posts
 export const getAllPosts = async (req, res) => {
   try {
+    // Fetch posts, exclude heavy AI embeddings, join author data, and sort newest first
     const posts = await CommunityPost.find({})
       .select('-embedding')
       .populate('author', 'name')
@@ -18,6 +19,7 @@ export const getAllPosts = async (req, res) => {
 // GET /api/community/:id — Single post
 export const getPostById = async (req, res) => {
   try {
+    // Fetch specific post by ID, excluding embeddings and joining author data
     const post = await CommunityPost.findById(req.params.id)
       .select('-embedding')
       .populate('author', 'name')
@@ -35,10 +37,12 @@ export const createPost = async (req, res) => {
   try {
     const { title, body } = req.body;
 
+    // Validate inputs
     if (!title || !body) {
       return res.status(400).json({ message: 'Title and body are required.' });
     }
 
+    // Create post linked to the authenticated user with a default 'unanswered' status
     const post = await CommunityPost.create({
       title,
       body,
@@ -46,6 +50,7 @@ export const createPost = async (req, res) => {
       status: 'unanswered',
     });
 
+    // Hydrate the author field before sending back the response
     await post.populate('author', 'name');
 
     res.status(201).json({ post });
@@ -61,8 +66,11 @@ export const toggleUpvote = async (req, res) => {
     if (!post) return res.status(404).json({ message: 'Post not found.' });
 
     const userId = req.user._id.toString();
+    
+    // Check if the user has already upvoted the post
     const alreadyUpvoted = post.upvotes.map(u => u.toString()).includes(userId);
 
+    // Toggle logic: remove user ID if already upvoted, otherwise push it to the array
     if (alreadyUpvoted) {
       post.upvotes = post.upvotes.filter(u => u.toString() !== userId);
     } else {
@@ -80,6 +88,8 @@ export const toggleUpvote = async (req, res) => {
 export const addComment = async (req, res) => {
   try {
     const { body } = req.body;
+    
+    // Ensure the comment isn't empty or just whitespace
     if (!body || !body.trim()) {
       return res.status(400).json({ message: 'Comment body is required.' });
     }
@@ -87,10 +97,11 @@ export const addComment = async (req, res) => {
     const post = await CommunityPost.findById(req.params.id);
     if (!post) return res.status(404).json({ message: 'Post not found.' });
 
+    // Push the new comment to the array and save the post
     post.comments.push({ author: req.user._id, body: body.trim() });
     await post.save();
 
-    // Re-populate and return last comment
+    // Hydrate the newly added comment's author data for the frontend
     await post.populate('comments.author', 'name');
     const newComment = post.comments[post.comments.length - 1];
 
@@ -104,6 +115,8 @@ export const addComment = async (req, res) => {
 export const resolvePost = async (req, res) => {
   try {
     const { answer } = req.body;
+    
+    // Require an official answer to close the thread
     if (!answer || !answer.trim()) {
       return res.status(400).json({ message: 'Answer text is required to resolve.' });
     }
@@ -111,6 +124,7 @@ export const resolvePost = async (req, res) => {
     const post = await CommunityPost.findById(req.params.id);
     if (!post) return res.status(404).json({ message: 'Post not found.' });
 
+    // Update thread status and attach the official answer
     post.status = 'answered';
     post.answer = answer.trim();
     await post.save();
