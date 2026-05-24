@@ -1,0 +1,402 @@
+{
+    "mode": "GRILL_ME_MODE",
+    "role": "Senior Staff-Level AI Systems Architect",
+    "objective": "Design and generate a production-grade AI-powered FAQ + Doubt Resolution Platform using MERN Stack, Vector Retrieval, Semantic Search, Community Q&A, and RAG-ready AI architecture.",
+    "strict_rules": {
+        "use_typescript_only": true,
+        "use_modular_architecture_only": true,
+        "avoid_beginner_patterns": true,
+        "avoid_monolithic_design": true,
+        "avoid_inline_business_logic": true,
+        "enforce_scalability": true,
+        "enforce_ai_ready_design": true,
+        "enforce_production_practices": true,
+        "generate_architecture_reasoning": true,
+        "generate_tradeoff_analysis": true,
+        "generate_security_considerations": true,
+        "generate_scalability_considerations": true
+    },
+    "project_overview": {
+        "name": "Yaksha AI FAQ Platform",
+        "description": "An AI-powered semantic FAQ and doubt resolution platform combining StackOverflow, ChatGPT, Reddit, Zendesk, and Notion-like knowledge systems.",
+        "primary_goal": "Create a scalable AI-driven knowledge ecosystem capable of semantic retrieval, intelligent search, verified static FAQs, community Q&A, and AI-assisted doubt resolution."
+    },
+    "tech_stack": {
+        "frontend": {
+            "framework": "Next.js",
+            "language": "TypeScript",
+            "styling": [
+                "Tailwind CSS",
+                "Shadcn UI"
+            ],
+            "state_management": [
+                "Zustand",
+                "React Query"
+            ]
+        },
+        "backend": {
+            "framework": "Node.js + Express.js",
+            "language": "TypeScript",
+            "authentication": [
+                "JWT",
+                "HTTP-only Cookies",
+                "Refresh Tokens"
+            ]
+        },
+        "database": {
+            "primary_db": "MongoDB",
+            "vector_search": [
+                "FAISS",
+                "MongoDB Vector Search"
+            ],
+            "cache": "Redis"
+        },
+        "ai_stack": {
+            "embeddings": [
+                "OpenAI Embeddings",
+                "Sentence Transformers",
+                "MiniLM",
+                "BGE Embeddings"
+            ],
+            "rag_frameworks": [
+                "LangChain",
+                "LlamaIndex"
+            ]
+        },
+        "deployment": [
+            "Docker",
+            "AWS",
+            "Vercel",
+            "Nginx",
+            "CI/CD"
+        ]
+    },
+    "system_flow": [
+        "Landing Page",
+        "Login/Register",
+        "Main Dashboard",
+        "Search Existing FAQs",
+        "Raise Query",
+        "Resolve Query",
+        "Community Answers",
+        "Verified Static FAQs",
+        "AI Semantic Retrieval"
+    ],
+    "frontend_architecture": {
+        "pages": {
+            "landing_page": {
+                "components": [
+                    "Hero Section",
+                    "AI Search Bar",
+                    "Trending FAQs",
+                    "Verified FAQ Highlights",
+                    "CTA Sections",
+                    "Community Statistics",
+                    "AI Assistant Preview"
+                ]
+            },
+            "authentication_pages": {
+                "pages": [
+                    "Login",
+                    "Register",
+                    "Forgot Password",
+                    "OTP Verification",
+                    "Social Authentication"
+                ],
+                "requirements": [
+                    "Validation UX",
+                    "Loading States",
+                    "Secure Session Handling",
+                    "Error Handling",
+                    "Password Strength Validation"
+                ]
+            },
+            "main_dashboard": {
+                "sections": [
+                    "Resolve Query",
+                    "Raise Query",
+                    "Main FAQ Interface"
+                ]
+            },
+            "resolve_query_section": {
+                "features": [
+                    "FAQ Search",
+                    "Semantic AI Search",
+                    "Community Answers",
+                    "AI Suggestions",
+                    "Related Questions",
+                    "Confidence Indicators"
+                ]
+            },
+            "raise_query_section": {
+                "features": [
+                    "Ask Question",
+                    "Tag System",
+                    "Category Selection",
+                    "Image Uploads",
+                    "Duplicate Detection",
+                    "AI Suggestions Before Posting"
+                ]
+            },
+            "verified_faq_section": {
+                "features": [
+                    "100% Verified FAQs",
+                    "Admin Verified Answers",
+                    "AI Summaries",
+                    "Confidence Scoring",
+                    "Featured FAQ Ranking"
+                ]
+            }
+        }
+    },
+    "authentication_system": {
+        "features": [
+            "Register",
+            "Login",
+            "Logout",
+            "JWT Authentication",
+            "Refresh Tokens",
+            "Password Reset",
+            "Email Verification",
+            "RBAC"
+        ],
+        "roles": [
+            "USER",
+            "MODERATOR",
+            "ADMIN",
+            "AI_MODERATOR"
+        ],
+        "security_requirements": [
+            "bcrypt Password Hashing",
+            "HTTP-only Cookies",
+            "Token Rotation",
+            "Session Validation",
+            "Refresh Token Expiration",
+            "CSRF Protection"
+        ]
+    },
+    "database_design": {
+        "collections": [
+            "Users",
+            "FAQs",
+            "Answers",
+            "Comments",
+            "Votes",
+            "Categories",
+            "Tags",
+            "Embeddings",
+            "Analytics",
+            "Notifications",
+            "SearchLogs"
+        ],
+        "faq_schema": {
+            "question": "string",
+            "slug": "string",
+            "description": "string",
+            "category": "ObjectId",
+            "tags": [
+                "string"
+            ],
+            "answers": [
+                "Answer[]"
+            ],
+            "credibility": "number",
+            "confidence": "number",
+            "embeddings": [
+                "number"
+            ],
+            "aiSummary": "string",
+            "isVerified": "boolean",
+            "createdBy": "ObjectId",
+            "views": "number",
+            "searchScore": "number",
+            "createdAt": "Date",
+            "updatedAt": "Date"
+        },
+        "answer_schema": {
+            "content": "string",
+            "author": "ObjectId",
+            "upvotes": "number",
+            "downvotes": "number",
+            "confidence": "number",
+            "comments": [
+                "Comment[]"
+            ],
+            "accepted": "boolean",
+            "aiGenerated": "boolean"
+        },
+        "comment_schema": {
+            "content": "string",
+            "author": "ObjectId",
+            "createdAt": "Date"
+        }
+    },
+    "credibility_engine": {
+        "inputs": [
+            "Upvotes",
+            "Downvotes",
+            "Accepted Answers",
+            "Moderator Verification",
+            "AI Confidence",
+            "User Reputation"
+        ],
+        "requirements": [
+            "Weighted Trust Scoring",
+            "Credibility Ranking",
+            "Spam Resistance",
+            "Confidence Algorithms"
+        ]
+    },
+    "semantic_search_system": {
+        "type": "Hybrid Search Engine",
+        "components": [
+            "Keyword Search",
+            "FAISS Vector Search",
+            "MongoDB Vector Retrieval",
+            "AI Ranking Engine"
+        ],
+        "pipeline": [
+            "Question Input",
+            "Embedding Generation",
+            "Vector Conversion",
+            "FAISS Indexing",
+            "Similarity Search",
+            "Top-K Retrieval",
+            "AI Ranking",
+            "Response Generation"
+        ],
+        "ranking_formula": {
+            "final_score": "semanticScore + keywordScore + credibilityScore + popularityScore"
+        }
+    },
+    "rag_system": {
+        "name": "Yaksha AI Engine",
+        "features": [
+            "Context Retrieval",
+            "Semantic Search",
+            "FAQ Summarization",
+            "AI Suggestions",
+            "Duplicate Detection",
+            "Contextual Answer Generation"
+        ],
+        "pipeline": [
+            "User Query",
+            "Embedding Model",
+            "Vector Search",
+            "Top-K Context Retrieval",
+            "LLM Prompt Construction",
+            "AI Response Generation"
+        ]
+    },
+    "duplicate_detection_system": {
+        "pipeline": [
+            "New Question",
+            "Embedding Generation",
+            "Vector Similarity Search",
+            "Threshold Detection",
+            "Duplicate Suggestion Engine"
+        ]
+    },
+    "admin_panel_system": {
+        "features": [
+            "User Management",
+            "FAQ Moderation",
+            "AI Moderation",
+            "Content Verification",
+            "Search Analytics",
+            "Embedding Monitoring",
+            "Vector Index Management"
+        ]
+    },
+    "analytics_system": {
+        "track_metrics": [
+            "Most Searched Queries",
+            "Failed Searches",
+            "Unresolved Doubts",
+            "AI Confidence Accuracy",
+            "Popular Categories",
+            "User Engagement"
+        ]
+    },
+    "backend_architecture": {
+        "layers": [
+            "Routes",
+            "Controllers",
+            "Services",
+            "Repositories",
+            "Middleware",
+            "Validators",
+            "AI Services",
+            "Search Services",
+            "Vector Services"
+        ],
+        "requirements": [
+            "Strict Separation of Concerns",
+            "Feature-based Modules",
+            "Reusable Service Layer",
+            "Repository Pattern",
+            "Centralized Error Handling"
+        ]
+    },
+    "security_requirements": {
+        "implement": [
+            "Helmet",
+            "Rate Limiting",
+            "CORS",
+            "Input Sanitization",
+            "XSS Protection",
+            "JWT Security",
+            "CSRF Protection",
+            "RBAC",
+            "Audit Logs"
+        ]
+    },
+    "performance_optimization": {
+        "strategies": [
+            "Redis Caching",
+            "Search Optimization",
+            "DB Indexing",
+            "Lazy Loading",
+            "Pagination",
+            "Request Batching",
+            "Vector Index Optimization"
+        ]
+    },
+    "deployment_architecture": {
+        "requirements": [
+            "Dockerized Services",
+            "CI/CD Pipelines",
+            "Horizontal Scaling",
+            "Load Balancing",
+            "CDN Integration",
+            "Nginx Reverse Proxy"
+        ]
+    },
+    "scalability_goals": {
+        "target_scale": [
+            "1M+ FAQs",
+            "10M+ Searches",
+            "Real-time Analytics",
+            "AI Semantic Retrieval",
+            "High Concurrent Traffic"
+        ]
+    },
+    "final_output_requirements": [
+        "Full System Architecture",
+        "Backend Architecture",
+        "Frontend Architecture",
+        "Database Schema Design",
+        "AI System Design",
+        "Vector Search Implementation",
+        "Folder Structures",
+        "Security Architecture",
+        "Deployment Architecture",
+        "Scalability Architecture",
+        "Search Ranking System",
+        "Admin System Design",
+        "RAG Pipeline",
+        "Credibility Engine",
+        "Duplicate Detection System"
+    ],
+    "final_instruction": "Generate a production-grade, enterprise-level, AI-ready MERN platform architecture with deep engineering explanations, scalable infrastructure, semantic retrieval systems, FAISS vector search, MongoDB vector retrieval, RAG integration, verified FAQ systems, community Q&A systems, and future-proof modular architecture suitable for FAANG-level evaluation."
+}
