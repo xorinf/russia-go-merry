@@ -1,28 +1,56 @@
 /** @type {import('tailwindcss').Config} */
 export default {
-  // 1. Content Array
-  // Tells Tailwind exactly which files to scan for class names so it can purge unused CSS in production
-  content: ['./index.html', './src/**/*.{js,jsx}'],
-  
+  // Scan all JS/JSX/TS/TSX files for Tailwind classes (supports incremental TS adoption)
+  content: ['./index.html', './src/**/*.{js,jsx,ts,tsx}'],
+
   theme: {
-    // 2. Extend
-    // We use "extend" instead of overwriting the base theme so we don't lose Tailwind's default colors/spacing
     extend: {
-      
-      // Custom Typography
-      // Overrides the default sans/mono fonts to use the Google Fonts loaded in index.html
+      // ── Typography ──────────────────────────────────────────────
+      // Matches UI project (vins/Frontend): Inter for body, DM Serif Display for headings
       fontFamily: {
-        sans: ['DM Sans', 'sans-serif'],
+        sans: ['Inter', 'system-ui', '-apple-system', 'sans-serif'],
+        serif: ['DM Serif Display', 'Playfair Display', 'Georgia', 'serif'],
         mono: ['JetBrains Mono', 'monospace'],
       },
-      
-      // Custom Color Palette
+
+      // ── Color Palette ───────────────────────────────────────────
+      // Fully adopted from the UI project's design system
       colors: {
+        // Core neutrals
+        bg: '#f7f6f3',           // Warm paper background
+        card: '#ffffff',          // Card surfaces
+        border: '#e5e5e5',        // Borders and dividers
+
+        // Text hierarchy
         ink: {
-          DEFAULT: '#0f0f0f', // Primary dark text/element color
-          soft: '#1a1a2e',    // Slightly softer dark variant
+          DEFAULT: '#1f1f1f',     // Primary text
+          soft: '#6b6b6b',        // Secondary / muted text
+          faint: '#9a9a9a',       // Tertiary / placeholder text
         },
-        // A complete 10-step scale for your primary brand color (Sage Green)
+
+        // Primary accent (warm sage — harmonizes with #f7f6f3 background)
+        accent: {
+          DEFAULT: '#5a7a5a',     // Primary buttons, links, active states
+          light: 'rgba(90, 122, 90, 0.1)',  // Accent backgrounds
+          hover: '#4a6a4a',       // Hover state
+          dark: '#3d5a3d',        // Active/pressed state
+        },
+
+        // Semantic colors
+        success: {
+          DEFAULT: '#5a9a6b',     // Answered / resolved states
+          light: 'rgba(90, 154, 107, 0.1)',
+        },
+        warning: {
+          DEFAULT: '#c4943a',     // Open / pending states
+          light: 'rgba(196, 148, 58, 0.1)',
+        },
+        danger: {
+          DEFAULT: '#dc4a4a',     // Errors
+          light: 'rgba(220, 74, 74, 0.08)',
+        },
+
+        // Legacy sage kept for backward compatibility (will phase out)
         sage: {
           50:  '#f4f7f4',
           100: '#e2ece2',
@@ -30,21 +58,45 @@ export default {
           300: '#96bc96',
           400: '#649964',
           500: '#457a45',
-          600: '#336133', // Used for primary buttons
-          700: '#294e29', // Used for button hover states
+          600: '#336133',
+          700: '#294e29',
           800: '#223f22',
           900: '#1c341c',
         },
-        cream: '#faf9f6', // Main background color
-        mist: '#f0eeea',  // Subtle offset background (e.g., for inputs or inactive tabs)
+
+        // Muted background surfaces
+        mist: '#f0eeea',
+        cream: '#faf9f6',
       },
-      
-      // Custom Shadows
-      // Abstracted shadow definitions to keep component classes clean (e.g., 'shadow-card' instead of complex arbitrary values)
+
+      // ── Box Shadows ─────────────────────────────────────────────
       boxShadow: {
-        'card': '0 1px 3px 0 rgba(0,0,0,0.06), 0 1px 2px -1px rgba(0,0,0,0.06)', // Subtle default depth
-        'card-hover': '0 4px 12px 0 rgba(0,0,0,0.10)',                         // Elevated depth on mouse hover
-        'float': '0 8px 24px 0 rgba(0,0,0,0.10)',                              // For modals, dropdowns, or floating icons
+        'subtle': '0 2px 12px rgba(0,0,0,0.04)',
+        'card': '0 1px 3px 0 rgba(0,0,0,0.06), 0 1px 2px -1px rgba(0,0,0,0.06)',
+        'card-hover': '0 12px 40px rgba(0,0,0,0.06)',
+        'float': '0 8px 24px 0 rgba(0,0,0,0.10)',
+        'glow': '0 0 0 3px rgba(90, 122, 90, 0.12), 0 8px 32px rgba(0,0,0,0.06)',
+      },
+
+      // ── Transitions ─────────────────────────────────────────────
+      transitionTimingFunction: {
+        'smooth': 'cubic-bezier(0.22, 0.61, 0.36, 1)',
+      },
+
+      // ── Animations ──────────────────────────────────────────────
+      keyframes: {
+        'fade-in': {
+          from: { opacity: '0', transform: 'translateY(8px)' },
+          to: { opacity: '1', transform: 'translateY(0)' },
+        },
+        'slide-down': {
+          from: { opacity: '0', maxHeight: '0' },
+          to: { opacity: '1', maxHeight: '320px' },
+        },
+      },
+      animation: {
+        'fade-in': 'fade-in 0.4s cubic-bezier(0.22, 0.61, 0.36, 1) forwards',
+        'slide-down': 'slide-down 0.35s cubic-bezier(0.22, 0.61, 0.36, 1) forwards',
       },
     },
   },

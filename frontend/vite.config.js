@@ -1,9 +1,17 @@
 import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
+import path from 'path';
 
 export default defineConfig({
   // 1. Plugins: Enables React support, including JSX compilation and Fast Refresh
   plugins: [react()],
+
+  // Path aliases for cleaner imports (e.g., '@/components/ui/Button')
+  resolve: {
+    alias: {
+      '@': path.resolve(__dirname, './src'),
+    },
+  },
   
   server: {
     // Locks the local development server to port 5173
