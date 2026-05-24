@@ -3,25 +3,32 @@ import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
 
 export default function RegisterPage() {
+  // Pull the register function from global auth context and initialize routing
   const { register } = useAuth();
   const navigate = useNavigate();
 
+  // Local state for handling user inputs, validation errors, and submission status
   const [form, setForm] = useState({ name: '', email: '', password: '' });
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
 
+  // Generic input handler: dynamically updates the specific field and clears active errors
   const handleChange = (e) => {
     setForm((f) => ({ ...f, [e.target.name]: e.target.value }));
     setError('');
   };
 
+  // Handles form submission, validation, and account creation
   const handleSubmit = async (e) => {
-    e.preventDefault();
+    e.preventDefault(); // Prevent standard browser page refresh
+    
+    // 1. Basic validation: Ensure no fields are left blank
     if (!form.name || !form.email || !form.password) {
       setError('Please fill out all fields.');
       return;
     }
 
+    // 2. Security validation: Enforce minimum password length matching backend schema
     if (form.password.length < 6) {
       setError('Password must be at least 6 characters.');
       return;
@@ -29,9 +36,13 @@ export default function RegisterPage() {
 
     setLoading(true);
     try {
+      // 3. Attempt registration via context API
       await register(form.name.trim(), form.email.trim(), form.password);
+      
+      // 4. Success: Redirect to home page and prevent back-navigation to the register page
       navigate('/', { replace: true });
     } catch (err) {
+      // 5. Failure: Display backend error (e.g., "Email already in use") or fallback message
       setError(err.response?.data?.message || 'Registration failed. Please try again.');
     } finally {
       setLoading(false);
@@ -40,9 +51,10 @@ export default function RegisterPage() {
 
   return (
     <div className="min-h-screen bg-cream flex flex-col items-center justify-center px-4">
-      {/* Card */}
+      {/* Centered Registration Card */}
       <div className="w-full max-w-sm">
-        {/* Logo mark */}
+        
+        {/* Brand Logo & Header */}
         <div className="flex flex-col items-center mb-8">
           <div className="w-11 h-11 rounded-xl bg-sage-600 flex items-center justify-center mb-4 shadow-float">
             <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
@@ -58,6 +70,8 @@ export default function RegisterPage() {
           <h2 className="text-sm font-semibold text-ink mb-5">Sign up</h2>
 
           <form onSubmit={handleSubmit} className="space-y-4" noValidate>
+            
+            {/* Full Name Input Field */}
             <div>
               <label htmlFor="name" className="block text-xs font-medium text-ink/60 mb-1.5">
                 Full Name
@@ -74,6 +88,7 @@ export default function RegisterPage() {
               />
             </div>
 
+            {/* Email Input Field */}
             <div>
               <label htmlFor="email" className="block text-xs font-medium text-ink/60 mb-1.5">
                 Email
@@ -90,6 +105,7 @@ export default function RegisterPage() {
               />
             </div>
 
+            {/* Password Input Field */}
             <div>
               <label htmlFor="password" className="block text-xs font-medium text-ink/60 mb-1.5">
                 Password
@@ -106,12 +122,14 @@ export default function RegisterPage() {
               />
             </div>
 
+            {/* Error Message Display Block */}
             {error && (
               <p className="text-xs text-red-600 bg-red-50 border border-red-100 rounded-lg px-3 py-2">
                 {error}
               </p>
             )}
 
+            {/* Submit Button with Dynamic Loading State */}
             <button
               type="submit"
               disabled={loading}
@@ -128,6 +146,7 @@ export default function RegisterPage() {
             </button>
           </form>
 
+          {/* Login Fallback Link */}
           <p className="text-center text-xs text-ink/60 mt-6">
             Already have an account?{' '}
             <Link to="/login" className="text-sage-600 hover:text-sage-700 font-medium transition-colors">
