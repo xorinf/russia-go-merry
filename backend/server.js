@@ -9,6 +9,7 @@ import authRoutes from './routes/auth.js';
 import faqRoutes from './routes/faq.js';
 import communityRoutes from './routes/community.js';
 import searchRoutes from './routes/search.js';
+import adminRoutes from './routes/admin.js';
 
 dotenv.config();
 
@@ -47,12 +48,22 @@ app.use(morgan('dev'));
 
 // 3. Rate Limiting
 const apiLimiter = rateLimit({
-  windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 100, // Limit each IP to 100 requests per `window`
+  windowMs: 15 * 60 * 1000,
+  max: 300,
   message: 'Too many requests from this IP, please try again after 15 minutes',
   standardHeaders: true,
   legacyHeaders: false,
 });
+
+const adminLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 1000,
+  message: 'Too many admin requests, please try again after 15 minutes',
+  standardHeaders: true,
+  legacyHeaders: false,
+});
+
+app.use('/api/admin', adminLimiter);
 app.use('/api/', apiLimiter);
 
 app.use(express.json());
@@ -62,6 +73,7 @@ app.use('/api/auth', authRoutes);
 app.use('/api/faq', faqRoutes);
 app.use('/api/community', communityRoutes);
 app.use('/api/search', searchRoutes);
+app.use('/api/admin', adminRoutes);
 
 // Health check
 app.get('/api/health', (req, res) => {
