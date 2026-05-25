@@ -6,8 +6,9 @@ import {
   toggleUpvote,
   addComment,
   resolvePost,
+  deletePost,
 } from '../controllers/communityController.js';
-import { protect } from '../middleware/auth.js'; 
+import { protect, authorize } from '../middleware/auth.js'; 
 
 const router = Router();
 
@@ -28,5 +29,8 @@ router.post('/:id/comments', protect, addComment);
 
 // PATCH /api/community/:id/resolve — Mark a post as answered and attach the official solution (Protected)
 router.patch('/:id/resolve', protect, resolvePost);
+
+// DELETE /api/community/:id — Delete a community post (Protected: Admin/Moderator only)
+router.delete('/:id', protect, authorize('admin', 'moderator'), deletePost);
 
 export default router;

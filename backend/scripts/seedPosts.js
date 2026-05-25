@@ -1,10 +1,10 @@
 import mongoose from 'mongoose';
 import dotenv from 'dotenv';
-import { pipeline } from '@xenova/transformers';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import CommunityPost from '../models/CommunityPost.js';
 import User from '../models/User.js';
+import { generateEmbedding } from '../utils/embeddings.js';
 
 // Resolve directory paths (required because standard __dirname is not available in ES Modules)
 const __filename = fileURLToPath(import.meta.url);
@@ -64,9 +64,9 @@ async function seedPosts() {
       process.exit(1);
     }
 
-    // 3. Initialize the local AI Transformer model for vector search embeddings
-    console.log("Loading Xenova transformer model (all-MiniLM-L6-v2) for embeddings...");
-    const extractor = await pipeline('feature-extraction', 'Xenova/all-MiniLM-L6-v2');
+    // Clear existing community posts to prevent duplicate pollution
+    console.log("Clearing existing community posts...");
+    await CommunityPost.deleteMany();
 
     const docsToInsert = [];
     
@@ -75,11 +75,10 @@ async function seedPosts() {
       const post = samplePosts[i];
       
       // Combine title, body, and answer (if any) to create a dense semantic footprint
-      const textToEmbed = `${post.title} ${post.body} ${post.answer || ''}`;
+      const textToEmbed = `Question: ${post.title}. Description: ${post.body}. Answer: ${post.answer || ''}`;
       
-      // Generate a normalized, mean-pooled embedding vector
-      const output = await extractor(textToEmbed, { pooling: 'mean', normalize: true });
-      const embedding = Array.from(output.data); // Convert to standard JS array
+      // Generate embedding vector using the unified utility function
+      const embedding = await generateEmbedding(textToEmbed);
 
       // Prepare the final document object
       docsToInsert.push({

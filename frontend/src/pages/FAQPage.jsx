@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import Navbar from '../components/layout/Navbar';
+import Footer from '../components/layout/Footer';
 import FAQAccordion from '../components/ui/FAQAccordion';
 import { FAQDoodles } from '../components/ui/PageDoodles';
 import api from '../utils/api';
@@ -83,9 +84,8 @@ export default function FAQPage() {
             )}
           </div>
         )}
-
-        <div className="h-12" />
       </main>
+      <Footer />
     </div>
   );
 }

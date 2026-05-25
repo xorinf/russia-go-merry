@@ -1,5 +1,6 @@
 import React, { useEffect, useRef, useState, useCallback } from 'react';
 import Navbar from '../components/layout/Navbar';
+import Footer from '../components/layout/Footer';
 import CommunityPostCard from '../components/ui/CommunityPostCard';
 import Avatar from '../components/ui/Avatar';
 import Badge from '../components/ui/Badge';
@@ -672,6 +673,8 @@ export default function CommunityPage() {
 
         <div className="h-12" />
       </main>
+
+      <Footer />
 
       {/* Conditionally Render Modals (teleported/fixed via HTML dialog tags) */}
       {selectedPost && (

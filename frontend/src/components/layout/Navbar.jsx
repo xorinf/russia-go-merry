@@ -143,6 +143,14 @@ export default function Navbar() {
                   <p className="text-sm font-medium text-ink">{user?.name || 'User'}</p>
                   <p className="text-xs text-ink-faint">{user?.email || ''}</p>
                 </div>
+                {(user?.role === 'admin' || user?.role === 'moderator') && (
+                  <button
+                    onClick={() => { navigate('/admin'); setProfileOpen(false); }}
+                    className="w-full text-left px-4 py-2.5 text-sm text-ink-soft hover:bg-bg hover:text-ink transition-colors border-b border-border/30"
+                  >
+                    Admin Dashboard
+                  </button>
+                )}
                 <button
                   onClick={handleLogout}
                   className="w-full text-left px-4 py-2.5 text-sm text-ink-soft hover:bg-bg hover:text-ink transition-colors"

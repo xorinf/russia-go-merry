@@ -1,4 +1,5 @@
 import CommunityPost from '../models/CommunityPost.js';
+import { generateEmbedding } from '../utils/embeddings.js';
 
 // GET /api/community — All posts
 export const getAllPosts = async (req, res) => {
@@ -42,12 +43,21 @@ export const createPost = async (req, res) => {
       return res.status(400).json({ message: 'Title and body are required.' });
     }
 
+    // Generate vector embedding for semantic search
+    let embedding;
+    try {
+      embedding = await generateEmbedding(`Question: ${title}. Description: ${body}`);
+    } catch (err) {
+      console.warn('Failed to generate embedding for post:', err.message);
+    }
+
     // Create post linked to the authenticated user with a default 'unanswered' status
     const post = await CommunityPost.create({
       title,
       body,
       author: req.user._id,
       status: 'unanswered',
+      embedding,
     });
 
     // Hydrate the author field before sending back the response
@@ -130,6 +140,17 @@ export const resolvePost = async (req, res) => {
     await post.save();
 
     res.json({ message: 'Post resolved.', post });
+  } catch (error) {
+    res.status(500).json({ message: 'Server error', error: error.message });
+  }
+};
+
+// DELETE /api/community/:id — Delete a community post (Admin/Moderator only)
+export const deletePost = async (req, res) => {
+  try {
+    const post = await CommunityPost.findByIdAndDelete(req.params.id);
+    if (!post) return res.status(404).json({ message: 'Post not found.' });
+    res.json({ message: 'Post deleted successfully.' });
   } catch (error) {
     res.status(500).json({ message: 'Server error', error: error.message });
   }

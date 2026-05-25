@@ -9,6 +9,7 @@ import authRoutes from './routes/auth.js';
 import faqRoutes from './routes/faq.js';
 import communityRoutes from './routes/community.js';
 import searchRoutes from './routes/search.js';
+import analyticsRoutes from './routes/analytics.js';
 
 // Load environment variables (.env)
 dotenv.config();
@@ -69,6 +70,7 @@ app.use('/api/auth', authRoutes);
 app.use('/api/faq', faqRoutes);
 app.use('/api/community', communityRoutes);
 app.use('/api/search', searchRoutes);
+app.use('/api/analytics', analyticsRoutes);
 
 // 6. Health Check Endpoint
 // Useful for deployment platforms (like Vercel/AWS) to verify the server is alive

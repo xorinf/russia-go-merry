@@ -1,5 +1,6 @@
 import React, { useState, useRef } from 'react';
 import Navbar from '../components/layout/Navbar';
+import Footer from '../components/layout/Footer';
 import SearchBar from '../components/ui/SearchBar';
 import SearchResults from '../components/ui/SearchResults';
 import TrendingQueries from '../components/ui/TrendingQueries';
@@ -201,14 +202,7 @@ export default function HomePage() {
         {!isSearchActive && <CTA />}
 
         {/* Footer */}
-        <footer className="text-center py-6 border-t border-border/50 mt-4">
-          <p className="text-xs text-ink-soft flex items-center justify-center gap-1.5">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#6b6b6b" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-              <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
-            </svg>
-            Built for students. Powered by community.
-          </p>
-        </footer>
+        <Footer />
       </main>
     </div>
   );
