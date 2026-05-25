@@ -10,15 +10,18 @@ import faqRoutes from './routes/faq.js';
 import communityRoutes from './routes/community.js';
 import searchRoutes from './routes/search.js';
 import adminRoutes from './routes/admin.js';
+import analyticsRoutes from './routes/analytics.js';
 
+// Load environment variables (.env)
 dotenv.config();
 
 const app = express();
 
-// Connect to MongoDB
+// Initialize MongoDB connection
 connectDB();
 
-// 1. Dynamic CORS Configuration (Must be first!)
+// 1. Dynamic CORS Configuration (Must be first to handle preflight requests!)
+// Defines which frontend domains are allowed to communicate with this API
 const allowedOrigins = [
   'http://localhost:5173',
   'http://127.0.0.1:5173',
@@ -30,26 +33,30 @@ if (process.env.CLIENT_URL) allowedOrigins.push(process.env.CLIENT_URL);
 
 app.use(cors({
   origin: function (origin, callback) {
+    // Allow requests with no origin (like mobile apps or curl) 
     if (!origin) return callback(null, true);
+    
+    // Check if the origin is in our whitelist or is a dynamic Vercel preview branch
     if (allowedOrigins.indexOf(origin) !== -1 || origin.endsWith('.vercel.app')) {
       callback(null, true);
     } else {
       callback(new Error('Not allowed by CORS'));
     }
   },
-  credentials: true,
+  credentials: true, // Required to allow cookies/auth headers
 }));
 
-// 2. Security Middleware
+// 2. Security & Logging Middleware
 app.use(helmet({
-  crossOriginResourcePolicy: false, // Allow cross-origin requests for the API
+  crossOriginResourcePolicy: false, // Adjusted to allow secure cross-origin API requests
 }));
-app.use(morgan('dev'));
+app.use(morgan('dev')); // Logs incoming HTTP requests to the console
 
 // 3. Rate Limiting
+// Prevents brute-force attacks and DDoS by capping requests per IP
 const apiLimiter = rateLimit({
-  windowMs: 15 * 60 * 1000,
-  max: 300,
+  windowMs: 15 * 60 * 1000, // 15-minute window
+  max: 300,                 // Limit each IP to 300 requests per window
   message: 'Too many requests from this IP, please try again after 15 minutes',
   standardHeaders: true,
   legacyHeaders: false,
@@ -66,35 +73,43 @@ const adminLimiter = rateLimit({
 app.use('/api/admin', adminLimiter);
 app.use('/api/', apiLimiter);
 
-app.use(express.json());
+// 4. Body Parsing
+app.use(express.json()); // Parses incoming JSON payloads in the request body
 
-// Routes
+// 5. Mount API Routes
 app.use('/api/auth', authRoutes);
 app.use('/api/faq', faqRoutes);
 app.use('/api/community', communityRoutes);
 app.use('/api/search', searchRoutes);
 app.use('/api/admin', adminRoutes);
+app.use('/api/analytics', analyticsRoutes);
 
-// Health check
+// 6. Health Check Endpoint
+// Useful for deployment platforms (like Vercel/AWS) to verify the server is alive
 app.get('/api/health', (req, res) => {
   res.json({ status: 'ok', version: '0.1.0' });
 });
 
-// Global error handler
+// 7. Global Error Handler
+// Catches unhandled errors across the app and standardizes the JSON response
 app.use((err, req, res, next) => {
   console.error(err.stack);
   res.status(err.status || 500).json({
     message: err.message || 'Internal server error',
+    // Only expose detailed stack traces in development mode for security
     ...(process.env.NODE_ENV === 'development' && { error: err.message, stack: err.stack })
   });
 });
 
 const PORT = process.env.PORT || 5000;
 
+// 8. Server Initialization
+// Prevents direct listening in production if deployed as a serverless function (e.g., Vercel)
 if (process.env.NODE_ENV !== 'production') {
   app.listen(PORT, () => {
     console.log(`Yaksha FAQ Portal backend running on port ${PORT}`);
   });
 }
 
+// Export the app for testing or serverless handler wrapping
 export default app;

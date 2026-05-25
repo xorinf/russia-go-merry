@@ -1,5 +1,6 @@
 import mongoose from 'mongoose';
 
+// Main schema for Frequently Asked Questions
 const faqSchema = new mongoose.Schema(
   {
     question: {
@@ -14,15 +15,15 @@ const faqSchema = new mongoose.Schema(
     category: {
       type: String,
       required: [true, 'Category is required'],
-      trim: true,
+      trim: true, // Used to group FAQs together on the frontend
     },
     embedding: {
-      type: [Number],
+      type: [Number], // Stores high-dimensional vector arrays for AI semantic search
       default: undefined,
-      select: false,
+      select: false,  // EXCELLENT optimization: hides this heavy data from standard queries
     },
     searchCount: {
-      type: Number,
+      type: Number,   // Analytics tracker to easily identify popular FAQs
       default: 0,
     },
     status: {
@@ -44,9 +45,11 @@ const faqSchema = new mongoose.Schema(
       default: null,
     },
   },
-  { timestamps: true }
+  { timestamps: true } // Automatically manages 'createdAt' and 'updatedAt' fields
 );
 
+// Creates a compound text index to enable traditional MongoDB $text keyword searches
 faqSchema.index({ question: 'text', answer: 'text' });
 
+// Export the model, explicitly defining the target collection name ('yaksha_faq_faqs')
 export default mongoose.model('FAQ', faqSchema, 'yaksha_faq_faqs');

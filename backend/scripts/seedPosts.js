@@ -1,15 +1,19 @@
 import mongoose from 'mongoose';
 import dotenv from 'dotenv';
-import { pipeline } from '@xenova/transformers';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import CommunityPost from '../models/CommunityPost.js';
 import User from '../models/User.js';
+import { generateEmbedding } from '../utils/embeddings.js';
 
+// Resolve directory paths (required because standard __dirname is not available in ES Modules)
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
+
+// Load environment variables from the parent directory's .env file
 dotenv.config({ path: path.join(__dirname, '..', '.env') });
 
+// Hardcoded array of sample community discussions to populate the database
 const samplePosts = [
   {
     title: 'Do I need to attend all team standups?',
@@ -45,12 +49,14 @@ const samplePosts = [
 
 async function seedPosts() {
   try {
+    // 1. Establish database connection
     console.log("Connecting to MongoDB...");
     await mongoose.connect(process.env.MONGODB_URI);
     
+    // 2. Locate an existing user to act as the author for these test posts
     let author = await User.findOne({ email: 'reg@yaksha.com' });
     if (!author) {
-      author = await User.findOne();
+      author = await User.findOne(); // Fallback to any user
     }
     
     if (!author) {
@@ -58,18 +64,23 @@ async function seedPosts() {
       process.exit(1);
     }
 
-    console.log("Loading Xenova transformer model (all-MiniLM-L6-v2) for embeddings...");
-    const extractor = await pipeline('feature-extraction', 'Xenova/all-MiniLM-L6-v2');
+    // Clear existing community posts to prevent duplicate pollution
+    console.log("Clearing existing community posts...");
+    await CommunityPost.deleteMany();
 
     const docsToInsert = [];
     
+    // 4. Process each post sequentially to generate its semantic embedding
     for (let i = 0; i < samplePosts.length; i++) {
       const post = samplePosts[i];
-      const textToEmbed = `${post.title} ${post.body} ${post.answer || ''}`;
       
-      const output = await extractor(textToEmbed, { pooling: 'mean', normalize: true });
-      const embedding = Array.from(output.data);
+      // Combine title, body, and answer (if any) to create a dense semantic footprint
+      const textToEmbed = `Question: ${post.title}. Description: ${post.body}. Answer: ${post.answer || ''}`;
+      
+      // Generate embedding vector using the unified utility function
+      const embedding = await generateEmbedding(textToEmbed);
 
+      // Prepare the final document object
       docsToInsert.push({
         ...post,
         author: author._id,
@@ -79,14 +90,16 @@ async function seedPosts() {
       console.log(`Processed post: ${post.title}`);
     }
 
+    // 5. Bulk insert all processed posts into MongoDB for optimal performance
     await CommunityPost.insertMany(docsToInsert);
     console.log(`\nSuccessfully inserted ${docsToInsert.length} community posts into the database!`);
     
-    process.exit(0);
+    process.exit(0); // Exit successfully
   } catch (err) {
     console.error('Error seeding posts:', err);
-    process.exit(1);
+    process.exit(1); // Exit with error code
   }
 }
 
+// Execute the seeding script
 seedPosts();
