@@ -9,6 +9,7 @@ import authRoutes from './routes/auth.js';
 import faqRoutes from './routes/faq.js';
 import communityRoutes from './routes/community.js';
 import searchRoutes from './routes/search.js';
+import adminRoutes from './routes/admin.js';
 import analyticsRoutes from './routes/analytics.js';
 
 // Load environment variables (.env)
@@ -55,11 +56,21 @@ app.use(morgan('dev')); // Logs incoming HTTP requests to the console
 // Prevents brute-force attacks and DDoS by capping requests per IP
 const apiLimiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15-minute window
-  max: 100,                 // Limit each IP to 100 requests per window
+  max: 300,                 // Limit each IP to 300 requests per window
   message: 'Too many requests from this IP, please try again after 15 minutes',
   standardHeaders: true,
   legacyHeaders: false,
 });
+
+const adminLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 1000,
+  message: 'Too many admin requests, please try again after 15 minutes',
+  standardHeaders: true,
+  legacyHeaders: false,
+});
+
+app.use('/api/admin', adminLimiter);
 app.use('/api/', apiLimiter);
 
 // 4. Body Parsing
@@ -70,6 +81,7 @@ app.use('/api/auth', authRoutes);
 app.use('/api/faq', faqRoutes);
 app.use('/api/community', communityRoutes);
 app.use('/api/search', searchRoutes);
+app.use('/api/admin', adminRoutes);
 app.use('/api/analytics', analyticsRoutes);
 
 // 6. Health Check Endpoint

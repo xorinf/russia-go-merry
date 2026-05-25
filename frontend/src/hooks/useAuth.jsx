@@ -2,7 +2,7 @@ import React, { createContext, useContext, useState, useEffect } from 'react';
 import api from '../utils/api';
 
 // Create the context to hold auth state globally
-const AuthContext = createContext(null);
+export const AuthContext = createContext(null);
 
 export const AuthProvider = ({ children }) => {
   // Lazily initialize user state from localStorage to prevent auth flashes on refresh

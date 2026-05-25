@@ -1,6 +1,8 @@
 import React from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider, useAuth } from './hooks/useAuth';
+
+// User pages
 import LoginPage from './pages/LoginPage';
 import RegisterPage from './pages/RegisterPage';
 import HomePage from './pages/HomePage';
@@ -8,6 +10,16 @@ import FAQPage from './pages/FAQPage';
 import CommunityPage from './pages/CommunityPage';
 import AdminPage from './pages/AdminPage';
 import Spinner from './components/ui/Spinner';
+// Admin pages
+import AdminLogin from './admin/pages/AdminLogin';
+import AdminDashboard from './admin/pages/AdminDashboard';
+import AdminFAQs from './admin/pages/AdminFAQs';
+import AdminAnalytics from './admin/pages/AdminAnalytics';
+import AdminUsers from './admin/pages/AdminUsers';
+import AdminSearch from './admin/pages/AdminSearch';
+import AdminReports from './admin/pages/AdminReports';
+import AdminSettings from './admin/pages/AdminSettings';
+import AdminLayout from './admin/components/layout/AdminLayout';
 
 // Helper component to lock down specific routes
 const ProtectedRoute = ({ children }) => {
@@ -71,7 +83,17 @@ const AppRoutes = () => {
       <Route path="/" element={<ProtectedRoute><HomePage /></ProtectedRoute>} />
       <Route path="/faq" element={<ProtectedRoute><FAQPage /></ProtectedRoute>} />
       <Route path="/community" element={<ProtectedRoute><CommunityPage /></ProtectedRoute>} />
-      <Route path="/admin" element={<AdminRoute><AdminPage /></AdminRoute>} />
+      <Route path="/admin/old" element={<AdminRoute><AdminPage /></AdminRoute>} />
+      
+      {/* Admin Panel dedicated routes (guarded by AdminRoute) */}
+      <Route path="/admin/login" element={<AdminLogin />} />
+      <Route path="/admin" element={<AdminRoute><AdminLayout><AdminDashboard /></AdminLayout></AdminRoute>} />
+      <Route path="/admin/faqs" element={<AdminRoute><AdminLayout><AdminFAQs /></AdminLayout></AdminRoute>} />
+      <Route path="/admin/analytics" element={<AdminRoute><AdminLayout><AdminAnalytics /></AdminLayout></AdminRoute>} />
+      <Route path="/admin/users" element={<AdminRoute><AdminLayout><AdminUsers /></AdminLayout></AdminRoute>} />
+      <Route path="/admin/search" element={<AdminRoute><AdminLayout><AdminSearch /></AdminLayout></AdminRoute>} />
+      <Route path="/admin/reports" element={<AdminRoute><AdminLayout><AdminReports /></AdminLayout></AdminRoute>} />
+      <Route path="/admin/settings" element={<AdminRoute><AdminLayout><AdminSettings /></AdminLayout></AdminRoute>} />
       
       {/* Catch-all fallback: Redirect any unknown URLs to the home page */}
       <Route path="*" element={<Navigate to="/" replace />} />
