@@ -1,83 +1,221 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { NavLink, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../hooks/useAuth';
 
 const navItems = [
   { label: 'Home', to: '/' },
   { label: 'FAQ', to: '/faq' },
-  { label: 'Community Board', to: '/community' },
+  { label: 'Community', to: '/community' },
 ];
+
+// Generate a consistent color from a name string
+function getAvatarColor(name) {
+  if (!name) return '#6b92e0';
+  let hash = 0;
+  for (let i = 0; i < name.length; i++) {
+    hash = name.charCodeAt(i) + ((hash << 5) - hash);
+  }
+  const colors = ['#6b92e0', '#5a9a6b', '#c4943a', '#e07c6b', '#7c6be0', '#e06ba8'];
+  return colors[Math.abs(hash) % colors.length];
+}
 
 export default function Navbar() {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
+  const [scrolled, setScrolled] = useState(false);
+  const [mobileOpen, setMobileOpen] = useState(false);
+  const [profileOpen, setProfileOpen] = useState(false);
+
+  useEffect(() => {
+    const onScroll = () => setScrolled(window.scrollY > 12);
+    window.addEventListener('scroll', onScroll, { passive: true });
+    return () => window.removeEventListener('scroll', onScroll);
+  }, []);
+
+  // Close profile dropdown when clicking outside
+  useEffect(() => {
+    if (!profileOpen) return;
+    const handleClick = () => setProfileOpen(false);
+    document.addEventListener('click', handleClick);
+    return () => document.removeEventListener('click', handleClick);
+  }, [profileOpen]);
 
   const handleLogout = () => {
     logout();
     navigate('/login');
   };
 
+  const initials = user?.name ? user.name.charAt(0).toUpperCase() : '?';
+  const avatarColor = getAvatarColor(user?.name);
+
   return (
-    <header className="sticky top-0 z-50 bg-cream/90 backdrop-blur-sm border-b border-black/6">
-      <div className="max-w-5xl mx-auto px-6 h-14 flex items-center justify-between">
-        {/* Logo */}
-        <NavLink to="/" className="flex items-center gap-2.5">
-          <span className="w-7 h-7 rounded-lg bg-sage-600 flex items-center justify-center">
-            <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
-              <path d="M7 1L13 4V10L7 13L1 10V4L7 1Z" fill="white" opacity="0.9"/>
-              <circle cx="7" cy="7" r="2" fill="white"/>
+    <header
+      className={`fixed top-0 left-0 right-0 z-50 transition-all duration-[400ms] ease-smooth
+        ${scrolled
+          ? 'bg-bg/82 backdrop-blur-[20px] saturate-[1.8] border-b border-black/[0.04] shadow-subtle'
+          : 'bg-transparent border-b border-transparent'
+        }`}
+    >
+      <div className="max-w-[1200px] mx-auto px-4 sm:px-6 h-14 sm:h-16 flex items-center justify-between relative">
+
+        {/* ── Logo ── */}
+        <NavLink to="/" className="flex items-center gap-2.5 group flex-shrink-0">
+          <div
+            className="w-9 h-9 rounded-[10px] border-2 border-ink flex items-center justify-center transition-transform duration-300 group-hover:rotate-[-6deg]"
+          >
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#1f1f1f" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+              <circle cx="12" cy="12" r="10"/>
+              <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/>
+              <line x1="12" y1="17" x2="12.01" y2="17"/>
             </svg>
+          </div>
+          <span className="font-serif text-xl tracking-tight text-ink">
+            Yaksha FAQ
           </span>
-          <span className="font-semibold text-sm tracking-tight">Yaksha FAQ</span>
         </NavLink>
 
-        {/* Nav links */}
-        <nav className="hidden md:flex items-center gap-1">
+        {/* ── Center Pill Group (Desktop) ── */}
+        <div
+          className="hidden lg:flex items-center gap-1.5 px-1.5 py-[5px] rounded-full border-[1.5px] border-border bg-white/50 backdrop-blur-[12px] absolute left-1/2 -translate-x-1/2"
+        >
           {navItems.map(({ label, to }) => (
             <NavLink
               key={to}
               to={to}
               end={to === '/'}
               className={({ isActive }) =>
-                `px-3.5 py-1.5 rounded-lg text-sm transition-colors duration-150 ` +
-                (isActive
-                  ? 'bg-sage-50 text-sage-700 font-medium'
-                  : 'text-ink/60 hover:text-ink hover:bg-mist')
+                `nav-pill ${isActive ? 'active' : ''}`
               }
             >
               {label}
             </NavLink>
           ))}
-        </nav>
+        </div>
 
-        {/* User */}
-        <div className="flex items-center gap-3">
-          <span className="hidden sm:block text-xs text-ink/50 font-medium">
-            {user?.name}
-          </span>
-          <button onClick={handleLogout} className="inline-flex items-center justify-center px-4 py-2 rounded-lg text-sm font-medium text-ink/70 hover:bg-mist hover:text-ink transition-colors duration-150 ease-in-out text-xs px-3 py-1.5">
-            Sign out
+        {/* ── Right Side ── */}
+        <div className="flex items-center gap-2 flex-shrink-0">
+
+          {/* Ask Question CTA — desktop only */}
+          <button
+            onClick={() => navigate('/community')}
+            className="hidden lg:flex items-center px-5 py-[7px] text-[0.82rem] font-semibold text-ink bg-transparent border-[1.5px] border-ink rounded-full cursor-pointer transition-all duration-300 ease-smooth tracking-[0.01em] leading-none hover:bg-ink hover:text-white hover:shadow-[0_4px_16px_rgba(0,0,0,0.15)] hover:-translate-y-px active:translate-y-0"
+          >
+            Ask Question
+          </button>
+
+          {/* Divider — desktop only */}
+          <div className="hidden lg:block w-px h-6 bg-border mx-1" />
+
+          {/* Notification bell — desktop only */}
+          <button className="hidden lg:flex w-9 h-9 items-center justify-center rounded-full hover:bg-black/[0.04] transition-colors relative cursor-pointer">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#6b6b6b" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/>
+              <path d="M13.73 21a2 2 0 0 1-3.46 0"/>
+            </svg>
+            <span className="absolute top-[6px] right-[6px] w-2 h-2 bg-success rounded-full" />
+          </button>
+
+          {/* User Avatar + Dropdown */}
+          <div className="relative">
+            <button
+              onClick={(e) => { e.stopPropagation(); setProfileOpen(!profileOpen); }}
+              className="flex items-center gap-1.5 cursor-pointer group"
+            >
+              <div
+                className="w-9 h-9 rounded-full flex items-center justify-center text-white text-sm font-semibold shadow-[0_0_0_2px_#fff,0_1px_4px_rgba(0,0,0,0.08)] transition-transform duration-200 group-hover:scale-105"
+                style={{ backgroundColor: avatarColor }}
+              >
+                {initials}
+              </div>
+              <svg
+                width="12" height="12" viewBox="0 0 24 24" fill="none"
+                stroke="#6b6b6b" strokeWidth="2.5"
+                className={`hidden md:block transition-transform duration-200 ${profileOpen ? 'rotate-180' : ''}`}
+              >
+                <polyline points="6 9 12 15 18 9"/>
+              </svg>
+            </button>
+
+            {/* Dropdown */}
+            {profileOpen && (
+              <div className="absolute right-0 top-12 w-48 bg-white rounded-xl border border-border shadow-float py-2 animate-fade-in z-50">
+                <div className="px-4 py-2 border-b border-border/50">
+                  <p className="text-sm font-medium text-ink">{user?.name || 'User'}</p>
+                  <p className="text-xs text-ink-faint">{user?.email || ''}</p>
+                </div>
+                <button
+                  onClick={handleLogout}
+                  className="w-full text-left px-4 py-2.5 text-sm text-ink-soft hover:bg-bg hover:text-ink transition-colors"
+                >
+                  Sign out
+                </button>
+              </div>
+            )}
+          </div>
+
+          {/* Mobile hamburger */}
+          <button
+            onClick={() => setMobileOpen(!mobileOpen)}
+            className="lg:hidden flex w-9 h-9 items-center justify-center rounded-[10px] hover:bg-black/[0.04] transition-colors"
+            aria-label="Toggle menu"
+          >
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
+              {mobileOpen ? (
+                <>
+                  <line x1="18" y1="6" x2="6" y2="18"/>
+                  <line x1="6" y1="6" x2="18" y2="18"/>
+                </>
+              ) : (
+                <>
+                  <line x1="4" y1="7" x2="20" y2="7"/>
+                  <line x1="4" y1="12" x2="20" y2="12"/>
+                  <line x1="4" y1="17" x2="20" y2="17"/>
+                </>
+              )}
+            </svg>
           </button>
         </div>
       </div>
 
-      {/* Mobile nav */}
-      <div className="md:hidden border-t border-black/5 px-6 py-2 flex gap-1">
-        {navItems.map(({ label, to }) => (
-          <NavLink
-            key={to}
-            to={to}
-            end={to === '/'}
-            className={({ isActive }) =>
-              `px-3 py-1.5 rounded-lg text-xs flex-1 text-center transition-colors duration-150 ` +
-              (isActive
-                ? 'bg-sage-50 text-sage-700 font-medium'
-                : 'text-ink/60 hover:text-ink hover:bg-mist')
-            }
-          >
-            {label}
-          </NavLink>
-        ))}
+      {/* ── Mobile Dropdown ── */}
+      <div
+        className={`lg:hidden overflow-hidden transition-all duration-[350ms] ease-smooth ${
+          mobileOpen ? 'max-h-80 opacity-100' : 'max-h-0 opacity-0'
+        }`}
+        style={{
+          backgroundColor: 'rgba(255,255,255,0.95)',
+          backdropFilter: 'blur(20px)',
+          WebkitBackdropFilter: 'blur(20px)',
+          borderTop: mobileOpen ? '1px solid #e5e5e5' : 'none',
+        }}
+      >
+        <div className="px-6 py-4 flex flex-col gap-1">
+          {navItems.map(({ label, to }) => (
+            <NavLink
+              key={to}
+              to={to}
+              end={to === '/'}
+              onClick={() => setMobileOpen(false)}
+              className={({ isActive }) =>
+                `block px-4 py-2.5 rounded-xl text-sm font-medium transition-all duration-200 ${
+                  isActive
+                    ? 'bg-accent-light text-accent'
+                    : 'text-ink-soft hover:text-ink hover:bg-black/[0.03]'
+                }`
+              }
+            >
+              {label}
+            </NavLink>
+          ))}
+          <div className="flex gap-2 mt-3">
+            <button
+              onClick={() => { navigate('/community'); setMobileOpen(false); }}
+              className="flex-1 py-2.5 px-4 text-sm font-semibold text-ink bg-transparent border-[1.5px] border-ink rounded-full cursor-pointer transition-all hover:bg-ink hover:text-white"
+            >
+              Ask Question
+            </button>
+          </div>
+        </div>
       </div>
     </header>
   );
