@@ -1,7 +1,7 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, forwardRef } from 'react';
 import api from '../../utils/api';
 
-export default function SearchBar({ onResults, onLoading }) {
+const SearchBar = forwardRef(function SearchBar({ onResults, onLoading }, ref) {
   const [query, setQuery] = useState('');
   const debounceRef = useRef(null);
 
@@ -45,8 +45,9 @@ export default function SearchBar({ onResults, onLoading }) {
 
   return (
     <form onSubmit={handleSubmit} className="w-full max-w-2xl mx-auto">
-      <div className="relative">
-        <div className="absolute left-4 top-1/2 -translate-y-1/2 text-ink/30 pointer-events-none">
+      <div className="relative search-glow rounded-2xl transition-all duration-300">
+        {/* Search icon */}
+        <div className="absolute left-4 top-1/2 -translate-y-1/2 text-ink-faint pointer-events-none">
           <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
             <circle cx="7.5" cy="7.5" r="5.5" stroke="currentColor" strokeWidth="1.5"/>
             <path d="M13 13L16 16" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
@@ -54,21 +55,30 @@ export default function SearchBar({ onResults, onLoading }) {
         </div>
 
         <input
+          ref={ref}
           type="text"
           value={query}
           onChange={handleChange}
           placeholder="Ask anything about your internship…"
-          className="w-full pl-11 pr-28 py-3.5 rounded-xl border border-black/10 bg-white text-sm text-ink placeholder-ink/35 focus:outline-none focus:ring-2 focus:ring-sage-400/40 focus:border-sage-400 transition duration-150 disabled:opacity-60 shadow-card"
+          className="w-full pl-12 pr-28 py-4 rounded-2xl border border-border bg-card text-sm text-ink placeholder-ink-faint focus:outline-none transition-all duration-300 shadow-subtle"
         />
 
+        {/* Search button */}
         <button
           type="submit"
           disabled={!query.trim()}
-          className="absolute right-2 top-1/2 -translate-y-1/2 inline-flex items-center justify-center px-5 py-2.5 rounded-lg bg-sage-600 text-white text-sm font-medium hover:bg-sage-700 active:bg-sage-800 transition-colors duration-150 ease-in-out disabled:opacity-50 disabled:cursor-not-allowed py-1.5 px-4 text-xs disabled:opacity-40"
+          style={{ backgroundColor: '#5a7a5a' }}
+          className="absolute right-2.5 top-1/2 -translate-y-1/2 inline-flex items-center justify-center gap-1.5 px-5 py-2 rounded-xl text-white text-xs font-medium hover:brightness-90 active:brightness-75 transition-all duration-200 disabled:opacity-40 disabled:cursor-not-allowed"
         >
+          <svg width="14" height="14" viewBox="0 0 14 14" fill="none" className="opacity-80">
+            <circle cx="5.5" cy="5.5" r="4" stroke="currentColor" strokeWidth="1.5"/>
+            <path d="M9.5 9.5L12.5 12.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
+          </svg>
           Search
         </button>
       </div>
     </form>
   );
-}
+});
+
+export default SearchBar;

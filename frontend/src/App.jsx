@@ -6,6 +6,7 @@ import RegisterPage from './pages/RegisterPage';
 import HomePage from './pages/HomePage';
 import FAQPage from './pages/FAQPage';
 import CommunityPage from './pages/CommunityPage';
+import Spinner from './components/ui/Spinner';
 
 // Helper component to lock down specific routes
 const ProtectedRoute = ({ children }) => {
@@ -14,8 +15,8 @@ const ProtectedRoute = ({ children }) => {
   // Show a minimal loading spinner while the app verifies the token in the background
   if (loading) {
     return (
-      <div className="min-h-screen bg-cream flex items-center justify-center">
-        <div className="w-6 h-6 rounded-full border-2 border-sage-300 border-t-sage-600 animate-spin" />
+      <div className="min-h-screen bg-bg flex items-center justify-center">
+        <Spinner size="md" />
       </div>
     );
   }
@@ -31,8 +32,8 @@ const AppRoutes = () => {
   // Prevent route flashing by waiting for the initial auth check to finish
   if (loading) {
     return (
-      <div className="min-h-screen bg-cream flex items-center justify-center">
-        <div className="w-6 h-6 rounded-full border-2 border-sage-300 border-t-sage-600 animate-spin" />
+      <div className="min-h-screen bg-bg flex items-center justify-center">
+        <Spinner size="md" />
       </div>
     );
   }
