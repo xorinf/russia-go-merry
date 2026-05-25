@@ -1,4 +1,4 @@
-# Yaksha FAQ Portal — v0.1
+# FAQ Portal — v0.1
 
 > Semantic search-powered FAQ and community board for internship students.
 
