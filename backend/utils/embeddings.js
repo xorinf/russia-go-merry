@@ -6,7 +6,7 @@ let embedder = null;
 export const generateEmbedding = async (text) => {
   // Lazy load the model only on the very first search to save initial startup time
   if (!embedder) {
-    embedder = await pipeline('feature-extraction', 'Xenova/all-MiniLM-L6-v2');
+    embedder = await pipeline('feature-extraction', 'Xenova/multi-qa-mpnet-base-dot-v1');
   }
   
   // Generate a dense semantic vector, normalized and mean-pooled for accurate similarity matching

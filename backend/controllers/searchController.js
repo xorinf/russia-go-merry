@@ -149,7 +149,7 @@ export const semanticSearch = async (req, res) => {
     // 5. Apply threshold filters to remove irrelevant garbage results
     const filtered = merged.filter(doc => {
       if (doc.textScore > 0) return true; // Direct keyword matches are always kept
-      return doc.vectorScore > 0.65;      // Semantic matches must hit a 65% similarity threshold
+      return doc.vectorScore > 0.80;      // Semantic matches must hit an 80% similarity threshold (updated model)
     }).slice(0, 5); // Return only the absolute top 5 results
 
     // 6. Save valid results to cache

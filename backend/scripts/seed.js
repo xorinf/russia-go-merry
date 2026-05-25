@@ -3,9 +3,9 @@ import path from 'path';
 import { fileURLToPath } from 'url';
 import dotenv from 'dotenv';
 import mongoose from 'mongoose';
-import { pipeline } from '@xenova/transformers';
 import FAQ from '../models/FAQ.js';
 import User from '../models/User.js';
+import { generateEmbedding } from '../utils/embeddings.js';
 
 // Resolve the current directory path (necessary because standard __dirname is not available in ES Modules)
 const __filename = fileURLToPath(import.meta.url);
@@ -26,26 +26,14 @@ const seed = async () => {
   try {
     console.log("Connecting to MongoDB Atlas...");
     await mongoose.connect(MONGODB_URI);
-    
+
     // --- STEP 1: SEED USERS ---
     console.log("[1/2] Seeding users...");
     await User.deleteMany(); // Clear existing users to avoid duplicates
-    
-    const users = [
-      {
-        name: "Test User",
-        email: "user@yaksha.com",
-        password: "password123", // The Mongoose pre-save hook will automatically hash this
-        role: "user",
-      },
-      {
-        name: "Admin User",
-        email: "admin@yaksha.com",
-        password: "admin123",
-        role: "admin",
-      },
-    ];
-    await User.create(users);
+    await User.create([
+      { name: "Test User", email: "user@yaksha.com", password: "password123", role: "user" },
+      { name: "Admin User", email: "admin@yaksha.com", password: "admin123", role: "admin" },
+    ]);
     console.log("  ✓ Inserted users");
 
     // --- STEP 2: SEED FAQS WITH AI EMBEDDINGS ---
@@ -57,46 +45,43 @@ const seed = async () => {
     const faqDataRaw = await fs.readFile(faqFilePath, 'utf-8');
     const faqData = JSON.parse(faqDataRaw);
 
-    // Initialize the local, in-memory Transformer model to calculate vector embeddings
-    console.log("Loading Xenova transformer model (all-MiniLM-L6-v2)...");
-    const extractor = await pipeline('feature-extraction', 'Xenova/all-MiniLM-L6-v2');
+    // Use flat faqs array directly
+    const allFaqs = faqData.faqs.map(faq => ({
+      question: faq.question,
+      answer: faq.answer,
+      category: faq.section,
+    }));
+
+    console.log(`Found ${allFaqs.length} FAQs. Generating embeddings...`);
 
     const docs = [];
-    
-    // Loop through each FAQ to generate its semantic footprint
-    for (let i = 0; i < faqData.faqs.length; i++) {
-      const faq = faqData.faqs[i];
+    for (let i = 0; i < allFaqs.length; i++) {
+      const faq = allFaqs[i];
       
-      // Combine the question and answer to give the AI maximum context
-      const text = `${faq.question} ${faq.answer}`;
-      
-      // Generate a normalized, mean-pooled embedding vector
-      const output = await extractor(text, { pooling: 'mean', normalize: true });
-      const embedding = Array.from(output.data); // Convert Float32Array to standard JS Array
+      const embedding = await generateEmbedding(`Section: ${faq.category}. Question: ${faq.question}. Answer: ${faq.answer}`);
 
       // Prepare the document object
       docs.push({
         question: faq.question,
         answer: faq.answer,
-        category: faq.section,
-        embedding: embedding,
+        category: faq.category,
+        embedding,
         searchCount: 0,
       });
 
       // Provide progress updates in the console
       if ((i + 1) % 10 === 0) {
-        console.log(`  Processed ${i + 1} / ${faqData.faqs.length} FAQs`);
+        console.log(`  Processed ${i + 1} / ${allFaqs.length}`);
       }
     }
 
     // Bulk insert the fully prepared documents into MongoDB for maximum performance
     await FAQ.insertMany(docs);
     console.log(`  ✓ Inserted ${docs.length} FAQs with embeddings`);
-
     console.log("Seeding complete!");
     process.exit(0); // Exit successfully
   } catch (error) {
-    console.error("Error during seeding:", error);
+    console.error("Seeding error:", error);
     process.exit(1); // Exit with failure code
   }
 };
