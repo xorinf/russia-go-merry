@@ -17,8 +17,15 @@ dotenv.config();
 
 const app = express();
 
-// Initialize MongoDB connection
-connectDB();
+// Database connection middleware to ensure connection on each request lazily
+app.use(async (req, res, next) => {
+  try {
+    await connectDB();
+    next();
+  } catch (err) {
+    next(err);
+  }
+});
 
 // 1. Dynamic CORS Configuration (Must be first to handle preflight requests!)
 // Defines which frontend domains are allowed to communicate with this API
