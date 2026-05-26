@@ -1,7 +1,19 @@
 import React, { useState, useRef, forwardRef } from 'react';
 import api from '../../utils/api';
 
-const SearchBar = forwardRef(function SearchBar({ onResults, onLoading, value, onQueryChange }, ref) {
+const SearchBar = forwardRef(function SearchBar(
+  {
+    onResults,
+    onLoading,
+    value,
+    onQueryChange,
+    placeholder = 'Ask anything about your internship...',
+    onFocus,
+    onBlur,
+    className = '',
+  },
+  ref
+) {
   const [internalQuery, setInternalQuery] = useState('');
   const isControlled = value !== undefined;
   const query = isControlled ? value ?? '' : internalQuery;
@@ -52,8 +64,8 @@ const SearchBar = forwardRef(function SearchBar({ onResults, onLoading, value, o
   };
 
   return (
-    <form onSubmit={handleSubmit} className="w-full max-w-2xl mx-auto">
-      <div className="relative search-glow rounded-2xl transition-all duration-300">
+    <form onSubmit={handleSubmit} className={`w-full max-w-3xl mx-auto ${className}`}>
+      <div className="relative search-glow rounded-[26px] transition-all duration-300">
         {/* Search icon */}
         <div className="absolute left-4 top-1/2 -translate-y-1/2 text-ink-faint pointer-events-none">
           <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
@@ -67,16 +79,17 @@ const SearchBar = forwardRef(function SearchBar({ onResults, onLoading, value, o
           type="text"
           value={query}
           onChange={handleChange}
-          placeholder="Ask anything about your internship…"
-          className="w-full pl-12 pr-28 py-4 rounded-2xl border border-border bg-card text-sm text-ink placeholder-ink-faint focus:outline-none transition-all duration-300 shadow-subtle"
+          onFocus={onFocus}
+          onBlur={onBlur}
+          placeholder={placeholder}
+          className="w-full pl-12 pr-32 py-5 sm:py-[22px] rounded-[26px] border border-border/70 bg-cream text-sm sm:text-base text-ink placeholder-ink-faint focus:outline-none focus:border-accent/50 focus:bg-white transition-all duration-300 shadow-[0_14px_34px_rgba(0,0,0,0.08)]"
         />
 
         {/* Search button */}
         <button
           type="submit"
           disabled={!query.trim()}
-          style={{ backgroundColor: '#5a7a5a' }}
-          className="absolute right-2.5 top-1/2 -translate-y-1/2 inline-flex items-center justify-center gap-1.5 px-5 py-2 rounded-xl text-white text-xs font-medium hover:brightness-90 active:brightness-75 transition-all duration-200 disabled:opacity-40 disabled:cursor-not-allowed"
+          className="absolute right-2.5 top-1/2 -translate-y-1/2 inline-flex items-center justify-center gap-1.5 px-5 py-2.5 rounded-full bg-accent text-white text-xs font-semibold hover:bg-accent-hover active:bg-accent-dark transition-all duration-200 disabled:opacity-40 disabled:cursor-not-allowed"
         >
           <svg width="14" height="14" viewBox="0 0 14 14" fill="none" className="opacity-80">
             <circle cx="5.5" cy="5.5" r="4" stroke="currentColor" strokeWidth="1.5"/>

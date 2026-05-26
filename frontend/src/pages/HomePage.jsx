@@ -1,10 +1,9 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import Navbar from '../components/layout/Navbar';
 import Footer from '../components/layout/Footer';
 import SearchBar from '../components/ui/SearchBar';
-import SearchResults from '../components/ui/SearchResults';
-import TrendingQueries from '../components/ui/TrendingQueries';
-import CategoryGrid from '../components/ui/CategoryGrid';
+import CategoryGrid, { categoryPills } from '../components/ui/CategoryGrid';
 import TopSolved from '../components/ui/TopSolved';
 import TrendingIssues from '../components/ui/TrendingIssues';
 import CTA from '../components/ui/CTA';
@@ -104,20 +103,176 @@ function DoodleElements() {
   );
 }
 
+const fallbackPopular = [
+  'offer letter',
+  'noc request',
+  'team formation',
+  'project submission',
+  'certificate',
+];
+
+const getConfidenceLevel = (result) => {
+  const vectorScore = Number(result.vectorScore || 0);
+  const textScore = Number(result.textScore || 0);
+
+  if (textScore >= 2 || vectorScore >= 0.9) return 'High';
+  if (textScore > 0 || vectorScore >= 0.82) return 'Medium';
+  return 'Medium';
+};
+
+function ConfidenceTag({ level }) {
+  const isHigh = level === 'High';
+  return (
+    <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-[11px] font-semibold ${
+      isHigh ? 'bg-success-light text-success' : 'bg-warning-light text-warning'
+    }`}>
+      {level} Confidence
+    </span>
+  );
+}
+
+function ResultItem({ result, expanded, onToggle }) {
+  const title = result.question || result.title || 'Untitled';
+  const fullContent = result.answer || result.body || '';
+  const isCommunity = result.source === 'community';
+  const sourceLabel = result.source === 'faq' ? 'FAQ' : 'Community';
+  const confidence = getConfidenceLevel(result);
+
+  return (
+    <div className={`rounded-2xl border transition-all duration-300 overflow-hidden ${
+      expanded ? 'border-accent/30 bg-cream' : 'border-border/70 bg-white/80 hover:bg-cream'
+    }`}>
+      <button
+        onClick={onToggle}
+        className="w-full text-left p-4 flex items-start justify-between gap-3"
+        aria-expanded={expanded}
+      >
+        <div className="min-w-0 flex-1">
+          <p className="text-sm font-semibold text-ink leading-snug line-clamp-1">
+            {title}
+          </p>
+          {fullContent && (
+            <p className="mt-1 text-xs text-ink-soft leading-relaxed line-clamp-2">
+              {fullContent}
+            </p>
+          )}
+          <div className="mt-2 flex items-center gap-2 flex-wrap text-[11px] text-ink-faint">
+            <span className="px-2 py-0.5 rounded-full bg-mist text-ink-soft">
+              {sourceLabel}
+            </span>
+            {result.category && (
+              <span className="text-ink-faint">{result.category}</span>
+            )}
+          </div>
+        </div>
+        <ConfidenceTag level={confidence} />
+      </button>
+
+      {expanded && fullContent && (
+        <div className="px-4 pb-4 border-t border-border/60">
+          {result.source === 'faq' && result.answer && (
+            <div className="mt-3 rounded-xl bg-accent-light border border-accent/15 p-4">
+              <p className="text-[11px] font-semibold text-accent mb-2 uppercase tracking-wide">Answer</p>
+              <p className="text-sm text-ink/75 leading-relaxed whitespace-pre-wrap">
+                {result.answer}
+              </p>
+            </div>
+          )}
+
+          {isCommunity && result.body && (
+            <div className="mt-3">
+              <p className="text-sm text-ink/70 leading-relaxed">{result.body}</p>
+            </div>
+          )}
+
+          {isCommunity && result.answer && (
+            <div className="mt-3 rounded-xl bg-success-light border border-success/15 p-4">
+              <p className="text-[11px] font-semibold text-success mb-2 uppercase tracking-wide">
+                Official Answer
+              </p>
+              <p className="text-sm text-ink/75 leading-relaxed">{result.answer}</p>
+            </div>
+          )}
+
+          {isCommunity && !result.answer && (
+            <div className="mt-3 rounded-xl bg-warning-light border border-warning/15 p-3">
+              <p className="text-xs text-warning">
+                This question has not been answered yet. Ask the community to help!
+              </p>
+            </div>
+          )}
+        </div>
+      )}
+    </div>
+  );
+}
+
 export default function HomePage() {
   const [results, setResults] = useState(null);
   const [loading, setLoading] = useState(false);
   const [query, setQuery] = useState('');
+  const [activeCategory, setActiveCategory] = useState('');
+  const [trending, setTrending] = useState([]);
+  const [trendingLoading, setTrendingLoading] = useState(true);
+  const [expandedId, setExpandedId] = useState(null);
   const searchBarRef = useRef(null);
+  const navigate = useNavigate();
 
-  const handleTrendingClick = async (selectedQuery) => {
-    setQuery(selectedQuery);
+  useEffect(() => {
+    let isMounted = true;
+    api.get('/search/trending')
+      .then((res) => {
+        if (isMounted) setTrending(res.data.trending || []);
+      })
+      .catch(() => {
+        if (isMounted) setTrending([]);
+      })
+      .finally(() => {
+        if (isMounted) setTrendingLoading(false);
+      });
+
+    return () => {
+      isMounted = false;
+    };
+  }, []);
+
+  useEffect(() => {
+    setExpandedId(null);
+  }, [results]);
+
+  const normalizedQuery = query.trim().toLowerCase();
+  const isTyping = normalizedQuery.length > 0;
+  const isReadyForResults = query.trim().length >= 3;
+  const showDropdown = isTyping || loading || Array.isArray(results);
+  const showResultsPanel = loading || Array.isArray(results);
+  const isSearchActive = showResultsPanel && isReadyForResults;
+
+  let suggestionItems = normalizedQuery
+    ? categoryPills.filter((cat) => cat.name.toLowerCase().includes(normalizedQuery))
+    : categoryPills.slice(0, 5);
+  if (normalizedQuery && suggestionItems.length === 0) {
+    suggestionItems = categoryPills.slice(0, 5);
+  }
+
+  const popularItems = trending.length
+    ? trending
+    : fallbackPopular.map((item) => ({ query: item }));
+
+  const matchingResults = Array.isArray(results) ? results : [];
+
+  const handleQuickSearch = async (selectedQuery) => {
+    const nextQuery = selectedQuery.trim();
+    if (!nextQuery) return;
+
+    setQuery(nextQuery);
+    setExpandedId(null);
     setLoading(true);
     setResults(null);
+    searchBarRef.current?.focus();
     window.scrollTo({ top: 200, behavior: 'smooth' });
 
     try {
-      const res = await api.post('/search', { query: selectedQuery });
+      const res = await api.post('/search', { query: nextQuery });
       setResults(res.data.results);
     } catch {
       setResults([]);
@@ -126,14 +281,30 @@ export default function HomePage() {
     }
   };
 
-  const isSearchActive = results || loading;
+  const handleCategorySelect = (categoryName) => {
+    setActiveCategory(categoryName);
+    handleQuickSearch(categoryName);
+  };
 
+  const handleQueryChange = (value) => {
+    setQuery(value);
+    if (activeCategory && value.trim().toLowerCase() !== activeCategory.toLowerCase()) {
+      setActiveCategory('');
+    }
+  };
+
+  const handleClear = () => {
+    setQuery('');
+    setResults(null);
+    setLoading(false);
+    setActiveCategory('');
+    setExpandedId(null);
+  };
   return (
     <div className="min-h-screen bg-bg grid-bg">
       <Navbar />
 
       <main className="max-w-[1200px] mx-auto px-4 sm:px-6 pt-20 sm:pt-24 pb-8">
-        
         {/* Hero heading */}
         <section className="relative text-center mb-8">
           <DoodleElements />
@@ -151,48 +322,171 @@ export default function HomePage() {
           </p>
         </section>
 
-        {/* Search + Categories Row */}
-        {!isSearchActive ? (
-          /* Default layout: Search + Popular Searches | Category Grid side by side */
-          <section className="flex flex-col lg:flex-row items-stretch lg:items-start justify-center gap-5 sm:gap-8 mb-8 sm:mb-10 mx-auto" style={{ maxWidth: '980px' }}>
-            <div className="w-full lg:flex-1 lg:max-w-[540px]">
-              <SearchBar
-                ref={searchBarRef}
-                value={query}
-                onQueryChange={setQuery}
-                onResults={setResults}
-                onLoading={setLoading}
-              />
-              <TrendingQueries onQueryClick={handleTrendingClick} />
-            </div>
-            <div className="w-full lg:w-[380px] lg:flex-shrink-0">
-              <CategoryGrid />
-            </div>
-          </section>
-        ) : (
-          /* Search active: Full-width search bar + results below */
-          <section className="max-w-2xl mx-auto mb-10">
+        {/* Search + Categories */}
+        <section className="relative mb-10 sm:mb-12">
+          <div className="relative max-w-3xl mx-auto z-20">
             <SearchBar
               ref={searchBarRef}
               value={query}
-              onQueryChange={setQuery}
+              onQueryChange={handleQueryChange}
               onResults={setResults}
               onLoading={setLoading}
             />
-            {/* Back button to clear search */}
-            <button
-              onClick={() => { setResults(null); setLoading(false); }}
-              className="mt-4 mb-2 inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium text-ink-soft hover:text-ink hover:bg-mist transition-all duration-200"
-            >
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M19 12H5"/>
-                <polyline points="12 19 5 12 12 5"/>
-              </svg>
-              Back to Home
-            </button>
-            <SearchResults results={results} loading={loading} />
-          </section>
-        )}
+
+            {showDropdown && (
+              <div className="absolute left-0 right-0 top-full mt-3 z-40 animate-fade-in">
+                <div className="rounded-3xl border border-border bg-card/95 backdrop-blur-xl shadow-float">
+                  <div className="flex items-center justify-between px-4 pt-4 pb-2">
+                    <div>
+                      <p className="text-[11px] font-semibold text-ink-faint uppercase tracking-wide">
+                        {showResultsPanel ? 'Search results' : 'Search suggestions'}
+                      </p>
+                      {isTyping && (
+                        <p className="text-sm text-ink mt-1">
+                          Results for <span className="font-semibold">"{query}"</span>
+                        </p>
+                      )}
+                    </div>
+                    {isTyping && (
+                      <button
+                        onClick={handleClear}
+                        className="text-xs font-medium text-ink-soft hover:text-ink transition-colors"
+                      >
+                        Clear
+                      </button>
+                    )}
+                  </div>
+
+                  <div className="grid gap-4 px-4 pb-4 lg:grid-cols-[1.35fr_0.95fr]">
+                    <div>
+                      <div className="flex items-center justify-between mb-2">
+                        <p className="text-[11px] font-semibold text-ink-faint uppercase tracking-wide">
+                          Matching questions
+                        </p>
+                        {showResultsPanel && (
+                          <span className="text-xs text-ink-faint">
+                            {matchingResults.length} found
+                          </span>
+                        )}
+                      </div>
+
+                      <div className="space-y-2 max-h-[320px] overflow-y-auto pr-1">
+                        {loading && (
+                          [1, 2, 3].map((i) => (
+                            <div
+                              key={i}
+                              className="h-[86px] rounded-2xl border border-border/60 bg-white/70 animate-pulse"
+                            />
+                          ))
+                        )}
+
+                        {!loading && matchingResults.length > 0 && matchingResults.map((result, idx) => {
+                          const resultKey = result._id || `${result.source || 'result'}-${idx}`;
+                          const isExpanded = expandedId === resultKey;
+                          return (
+                            <ResultItem
+                              key={resultKey}
+                              result={result}
+                              expanded={isExpanded}
+                              onToggle={() => setExpandedId(isExpanded ? null : resultKey)}
+                            />
+                          );
+                        })}
+
+                        {!loading && matchingResults.length === 0 && (
+                          <div className="rounded-2xl border border-dashed border-border bg-white/70 p-4">
+                            <p className="text-xs text-ink-soft">
+                              {isReadyForResults
+                                ? 'No matches found. Try a different phrase or ask the community.'
+                                : 'Keep typing to see matching questions.'}
+                            </p>
+                          </div>
+                        )}
+                      </div>
+
+                      <div className="mt-3 rounded-2xl border border-border/70 bg-white/80 p-3 flex items-center justify-between gap-3">
+                        <div>
+                          <p className="text-xs font-semibold text-ink">Need a human answer?</p>
+                          <p className="text-[11px] text-ink-soft">Ask the community and get help faster.</p>
+                        </div>
+                        <button
+                          onClick={() => navigate('/community')}
+                          className="shrink-0 px-3 py-2 rounded-full bg-ink text-white text-[11px] font-semibold hover:bg-ink/85 transition-colors"
+                        >
+                          Ask community
+                        </button>
+                      </div>
+                    </div>
+
+                    <div className="space-y-4">
+                      <div>
+                        <p className="text-[11px] font-semibold text-ink-faint uppercase tracking-wide">
+                          Suggestions
+                        </p>
+                        <div className="mt-2 space-y-1">
+                          {suggestionItems.map((cat) => (
+                            <button
+                              key={cat.name}
+                              onClick={() => handleQuickSearch(cat.name)}
+                              className="w-full flex items-center gap-2 px-3 py-2 rounded-2xl border border-border/60 bg-white/70 text-left hover:bg-cream transition-colors"
+                            >
+                              <span className="text-ink-faint">{cat.icon}</span>
+                              <span className="text-sm text-ink">{cat.name}</span>
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+
+                      <div>
+                        <p className="text-[11px] font-semibold text-ink-faint uppercase tracking-wide">
+                          Popular searches
+                        </p>
+                        <div className="mt-2 space-y-1">
+                          {trendingLoading && (
+                            [1, 2, 3].map((i) => (
+                              <div key={i} className="h-10 rounded-2xl border border-border/60 bg-white/70 animate-pulse" />
+                            ))
+                          )}
+
+                          {!trendingLoading && popularItems.map((item) => (
+                            <button
+                              key={item.query}
+                              onClick={() => handleQuickSearch(item.query)}
+                              className="w-full flex items-center justify-between gap-2 px-3 py-2 rounded-2xl border border-border/60 bg-white/70 text-left hover:bg-cream transition-colors"
+                            >
+                              <div className="flex items-center gap-2">
+                                <span className="text-ink-faint">
+                                  <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
+                                    <circle cx="6" cy="6" r="5" stroke="currentColor" strokeWidth="1.4" />
+                                    <path d="M6 3.5V6L8 7" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" />
+                                  </svg>
+                                </span>
+                                <span className="text-sm text-ink capitalize">{item.query}</span>
+                              </div>
+                              {item.count !== undefined && (
+                                <span className="text-[11px] text-ink-faint">{item.count}</span>
+                              )}
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
+          </div>
+
+          <div className={`mt-5 sm:mt-6 transition-all duration-300 ${
+            showDropdown ? 'opacity-70 translate-y-1' : 'opacity-100'
+          }`}>
+            <CategoryGrid
+              activeCategory={activeCategory}
+              onSelect={handleCategorySelect}
+            />
+          </div>
+        </section>
 
         {/* Top Solved + Trending Issues Row */}
         {!isSearchActive && (
