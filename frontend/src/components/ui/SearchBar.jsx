@@ -1,8 +1,10 @@
 import React, { useState, useRef, forwardRef } from 'react';
 import api from '../../utils/api';
 
-const SearchBar = forwardRef(function SearchBar({ onResults, onLoading }, ref) {
-  const [query, setQuery] = useState('');
+const SearchBar = forwardRef(function SearchBar({ onResults, onLoading, value, onQueryChange }, ref) {
+  const [internalQuery, setInternalQuery] = useState('');
+  const isControlled = value !== undefined;
+  const query = isControlled ? value ?? '' : internalQuery;
   const debounceRef = useRef(null);
 
   const handleSearch = async (searchQuery) => {
@@ -27,7 +29,13 @@ const SearchBar = forwardRef(function SearchBar({ onResults, onLoading }, ref) {
 
   const handleChange = (e) => {
     const value = e.target.value;
-    setQuery(value);
+    if (isControlled) {
+      if (onQueryChange) {
+        onQueryChange(value);
+      }
+    } else {
+      setInternalQuery(value);
+    }
 
     clearTimeout(debounceRef.current);
     if (value.trim().length >= 3) {
