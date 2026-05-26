@@ -107,15 +107,17 @@ function DoodleElements() {
 export default function HomePage() {
   const [results, setResults] = useState(null);
   const [loading, setLoading] = useState(false);
+  const [query, setQuery] = useState('');
   const searchBarRef = useRef(null);
 
-  const handleTrendingClick = async (query) => {
+  const handleTrendingClick = async (selectedQuery) => {
+    setQuery(selectedQuery);
     setLoading(true);
     setResults(null);
     window.scrollTo({ top: 200, behavior: 'smooth' });
 
     try {
-      const res = await api.post('/search', { query });
+      const res = await api.post('/search', { query: selectedQuery });
       setResults(res.data.results);
     } catch {
       setResults([]);
@@ -156,6 +158,8 @@ export default function HomePage() {
             <div className="w-full lg:flex-1 lg:max-w-[540px]">
               <SearchBar
                 ref={searchBarRef}
+                value={query}
+                onQueryChange={setQuery}
                 onResults={setResults}
                 onLoading={setLoading}
               />
@@ -170,6 +174,8 @@ export default function HomePage() {
           <section className="max-w-2xl mx-auto mb-10">
             <SearchBar
               ref={searchBarRef}
+              value={query}
+              onQueryChange={setQuery}
               onResults={setResults}
               onLoading={setLoading}
             />
