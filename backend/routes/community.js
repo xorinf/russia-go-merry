@@ -8,29 +8,19 @@ import {
   resolvePost,
   deletePost,
 } from '../controllers/communityController.js';
-import { protect, authorize } from '../middleware/auth.js'; 
+import { searchCommunityPosts } from '../controllers/communitySearchController.js';
+import { protect, authorize } from '../middleware/auth.js';
 
 const router = Router();
 
-// GET /api/community — Fetch all community posts, sorted by newest (Protected)
+router.get('/search', protect, searchCommunityPosts);
+
 router.get('/', protect, getAllPosts);
-
-// GET /api/community/:id — Fetch a single post and its embedded comments by ID (Protected)
 router.get('/:id', protect, getPostById);
-
-// POST /api/community — Create a new community question/post (Protected)
 router.post('/', protect, createPost);
-
-// POST /api/community/:id/upvote — Add or remove the current user's upvote on a post (Protected)
 router.post('/:id/upvote', protect, toggleUpvote);
-
-// POST /api/community/:id/comments — Submit a new comment on a specific post (Protected)
 router.post('/:id/comments', protect, addComment);
-
-// PATCH /api/community/:id/resolve — Mark a post as answered and attach the official solution (Protected)
 router.patch('/:id/resolve', protect, resolvePost);
-
-// DELETE /api/community/:id — Delete a community post (Protected: Admin/Moderator only)
 router.delete('/:id', protect, authorize('admin', 'moderator'), deletePost);
 
 export default router;
