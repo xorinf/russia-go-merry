@@ -322,9 +322,18 @@ export default function HomePage() {
           </p>
         </section>
 
+        {/* Backdrop blur overlay when search is active */}
+        {showDropdown && (
+          <div
+            className="fixed inset-0 z-30 bg-ink/20 backdrop-blur-sm transition-opacity duration-300"
+            onClick={handleClear}
+            aria-hidden="true"
+          />
+        )}
+
         {/* Search + Categories */}
         <section className="relative mb-10 sm:mb-12">
-          <div className="relative max-w-3xl mx-auto z-20">
+          <div className={`relative max-w-3xl mx-auto ${showDropdown ? 'z-40' : 'z-20'}`}>
             <SearchBar
               ref={searchBarRef}
               value={query}
