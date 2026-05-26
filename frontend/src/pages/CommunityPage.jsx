@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState, useCallback } from 'react';
+import React, { useEffect, useRef, useState, useCallback, useMemo } from 'react';
 import Navbar from '../components/layout/Navbar';
 import Footer from '../components/layout/Footer';
 import CommunityPostCard from '../components/ui/CommunityPostCard';
@@ -9,9 +9,6 @@ import { CommunityDoodles } from '../components/ui/PageDoodles';
 import api from '../utils/api';
 import { useAuth } from '../hooks/useAuth';
 
-// ─── Helpers ────────────────────────────────────────────────────────────────
-
-// Formats a raw date string into a readable Indian date format (e.g., "24 May 2026")
 const formatDate = (d) =>
   new Date(d).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' });
 
@@ -22,13 +19,10 @@ function PostDetailDialog({ post: initialPost, onClose, currentUserId, userRole 
   const [commentText, setCommentText] = useState('');
   const [commentLoading, setCommentLoading] = useState(false);
   const [upvoteLoading, setUpvoteLoading] = useState(false);
-  
-  // Admin/Moderator resolution state
   const [resolveText, setResolveText] = useState('');
   const [showResolveForm, setShowResolveForm] = useState(false);
   const [resolveLoading, setResolveLoading] = useState(false);
 
-  // Derived state for UI rendering
   const isAnswered = post.status === 'answered';
   const upvoteCount = post.upvotes?.length ?? 0;
   const hasUpvoted = post.upvotes?.some(
@@ -36,7 +30,6 @@ function PostDetailDialog({ post: initialPost, onClose, currentUserId, userRole 
   );
   const canResolve = userRole === 'admin' || userRole === 'moderator';
 
-  // Handle native HTML dialog lifecycle and light-dismiss (clicking outside to close)
   useEffect(() => {
     const dialog = dialogRef.current;
     if (!dialog) return;
@@ -45,7 +38,6 @@ function PostDetailDialog({ post: initialPost, onClose, currentUserId, userRole 
     const handleClose = () => onClose();
     dialog.addEventListener('close', handleClose);
 
-    // Manual light-dismiss fallback for older browsers
     if (!('closedBy' in HTMLDialogElement.prototype)) {
       const handleBackdropClick = (e) => {
         if (e.target !== dialog) return;
@@ -65,7 +57,6 @@ function PostDetailDialog({ post: initialPost, onClose, currentUserId, userRole 
     return () => dialog.removeEventListener('close', handleClose);
   }, [onClose]);
 
-  // Optimistically toggle upvote status in the UI while calling the backend
   const handleUpvote = async () => {
     if (upvoteLoading) return;
     setUpvoteLoading(true);
@@ -84,7 +75,6 @@ function PostDetailDialog({ post: initialPost, onClose, currentUserId, userRole 
     }
   };
 
-  // Submit a new comment and update the local state to show it immediately
   const handleComment = async (e) => {
     e.preventDefault();
     if (!commentText.trim() || commentLoading) return;
@@ -100,7 +90,6 @@ function PostDetailDialog({ post: initialPost, onClose, currentUserId, userRole 
     }
   };
 
-  // Admin action: Attach an official answer and mark the thread resolved
   const handleResolve = async (e) => {
     e.preventDefault();
     if (!resolveText.trim() || resolveLoading) return;
@@ -126,8 +115,6 @@ function PostDetailDialog({ post: initialPost, onClose, currentUserId, userRole 
       style={{ maxHeight: '90vh' }}
     >
       <div className="flex flex-col overflow-hidden" style={{ maxHeight: '90vh' }}>
-
-        {/* Header Section */}
         <div className="flex items-start justify-between gap-3 p-6 pb-4 border-b border-border">
           <div className="flex items-start gap-3 flex-1 min-w-0">
             <div className={`flex-shrink-0 w-10 h-10 rounded-xl flex items-center justify-center mt-0.5
@@ -158,8 +145,6 @@ function PostDetailDialog({ post: initialPost, onClose, currentUserId, userRole 
               </div>
             </div>
           </div>
-          
-          {/* Close Dialog Button */}
           <button
             onClick={() => dialogRef.current?.close()}
             aria-label="Close dialog"
@@ -171,15 +156,11 @@ function PostDetailDialog({ post: initialPost, onClose, currentUserId, userRole 
           </button>
         </div>
 
-        {/* Scrollable Modal Body */}
         <div className="overflow-y-auto flex-1">
-
-          {/* Original Question */}
           <div className="px-6 py-4">
             <p className="text-sm text-ink/70 leading-relaxed">{post.body}</p>
           </div>
 
-          {/* Actions Row (Upvote, Comment Count, Resolve) */}
           <div className="px-6 pb-4 flex items-center gap-3">
             <button
               onClick={handleUpvote}
@@ -203,7 +184,6 @@ function PostDetailDialog({ post: initialPost, onClose, currentUserId, userRole 
               {post.comments?.length ?? 0} comments
             </span>
 
-            {/* Resolve button strictly for admins */}
             {canResolve && !isAnswered && (
               <Button
                 variant="primary"
@@ -219,7 +199,6 @@ function PostDetailDialog({ post: initialPost, onClose, currentUserId, userRole 
             )}
           </div>
 
-          {/* Official Answer Block (Only visible if resolved) */}
           {isAnswered && post.answer && (
             <div className="mx-6 mb-4 rounded-xl bg-success-light border border-success/20 p-4">
               <p className="text-xs font-semibold text-success mb-2 uppercase tracking-wide flex items-center gap-1.5">
@@ -232,7 +211,6 @@ function PostDetailDialog({ post: initialPost, onClose, currentUserId, userRole 
             </div>
           )}
 
-          {/* Admin Resolve Form */}
           {showResolveForm && (
             <form onSubmit={handleResolve} className="mx-6 mb-4 rounded-xl border border-accent/20 bg-accent-light p-4">
               <label className="block text-xs font-medium text-accent mb-2">Write the official answer</label>
@@ -254,7 +232,6 @@ function PostDetailDialog({ post: initialPost, onClose, currentUserId, userRole 
             </form>
           )}
 
-          {/* User Comments List */}
           <div className="px-6 pb-2">
             <h3 className="text-xs font-semibold text-ink-soft uppercase tracking-wider mb-3">
               Comments ({post.comments?.length ?? 0})
@@ -280,7 +257,6 @@ function PostDetailDialog({ post: initialPost, onClose, currentUserId, userRole 
             )}
           </div>
 
-          {/* Add New Comment Input */}
           <form onSubmit={handleComment} className="px-6 pt-3 pb-6">
             <div className="flex gap-2 items-start">
               <textarea
@@ -290,7 +266,6 @@ function PostDetailDialog({ post: initialPost, onClose, currentUserId, userRole 
                 placeholder="Write a comment…"
                 className="flex-1 rounded-xl border border-border bg-mist px-3 py-2.5 text-sm text-ink placeholder-ink-faint focus:outline-none focus:ring-2 focus:ring-accent/25 focus:bg-card transition-all resize-none"
                 onKeyDown={(e) => {
-                  // Submit form on raw Enter key, allow newlines via Shift+Enter
                   if (e.key === 'Enter' && !e.shiftKey) {
                     e.preventDefault();
                     handleComment(e);
@@ -323,7 +298,6 @@ function CreatePostDialog({ onClose, onCreated }) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
-  // Handle native dialog setup and light-dismiss
   useEffect(() => {
     const dialog = dialogRef.current;
     if (!dialog) return;
@@ -332,7 +306,6 @@ function CreatePostDialog({ onClose, onCreated }) {
     const handleClose = () => onClose();
     dialog.addEventListener('close', handleClose);
 
-    // Fallback light-dismiss logic
     if (!('closedBy' in HTMLDialogElement.prototype)) {
       const handleBackdropClick = (e) => {
         if (e.target !== dialog) return;
@@ -351,22 +324,18 @@ function CreatePostDialog({ onClose, onCreated }) {
     return () => dialog.removeEventListener('close', handleClose);
   }, [onClose]);
 
-  // Submit the new post to the backend
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
-    
-    // Basic frontend validation
     if (!title.trim() || !body.trim()) {
       setError('Both title and description are required.');
       return;
     }
-    
     setLoading(true);
     try {
       const res = await api.post('/community', { title: title.trim(), body: body.trim() });
-      onCreated(res.data.post); // Pass data back to parent list
-      dialogRef.current?.close(); // Native close method
+      onCreated(res.data.post);
+      dialogRef.current?.close();
     } catch (err) {
       setError(err.response?.data?.message || 'Failed to post. Please try again.');
     } finally {
@@ -382,7 +351,6 @@ function CreatePostDialog({ onClose, onCreated }) {
       className="m-auto w-full max-w-lg rounded-2xl border border-border shadow-2xl bg-card p-0 backdrop:bg-ink/30 backdrop:backdrop-blur-sm"
     >
       <div className="p-6">
-        {/* Header */}
         <div className="flex items-center justify-between mb-5">
           <div>
             <h2 id="create-post-title" className="text-base font-semibold text-ink">Ask a Question</h2>
@@ -468,17 +436,18 @@ export default function CommunityPage() {
   const [total, setTotal] = useState(0);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
-  
-  // Dashboard state controls
+
   const [filter, setFilter] = useState('all');
   const [sort, setSort] = useState('newest');
   const [search, setSearch] = useState('');
-  
-  // Modal visibility states
+
+  // ── Semantic search state ──
+  const [searchResults, setSearchResults] = useState([]);
+  const [searchLoading, setSearchLoading] = useState(false);
+
   const [selectedPost, setSelectedPost] = useState(null);
   const [showCreate, setShowCreate] = useState(false);
 
-  // Fetch all initial data
   const fetchPosts = useCallback(() => {
     setLoading(true);
     api.get('/community')
@@ -490,38 +459,68 @@ export default function CommunityPage() {
       .finally(() => setLoading(false));
   }, []);
 
-  useEffect(() => { fetchPosts(); }, [fetchPosts]);
+  useEffect(() => {
+    fetchPosts();
+  }, [fetchPosts]);
 
-  // Handle callback when a new post is successfully created via the dialog
+  // ── Semantic search handler ──
+  const runSemanticSearch = useCallback(async (q) => {
+    setSearchLoading(true);
+    try {
+      const res = await api.get('/community/search', { params: { q } });
+      setSearchResults(res.data.results || []);
+    } catch (err) {
+      console.error(err);
+      setSearchResults([]);
+    } finally {
+      setSearchLoading(false);
+    }
+  }, []);
+
+  // ── Debounced search trigger ──
+  useEffect(() => {
+    const q = search.trim();
+    if (!q) {
+      setSearchResults([]);
+      return;
+    }
+    const timer = setTimeout(() => {
+      runSemanticSearch(q);
+    }, 300);
+    return () => clearTimeout(timer);
+  }, [search, runSemanticSearch]);
+
   const handlePostCreated = (newPost) => {
     setPosts((prev) => [newPost, ...prev]);
     setTotal((t) => t + 1);
     setShowCreate(false);
   };
 
-  // Re-fetch the feed to capture any upvotes or comments added while viewing the modal
   const handleCloseDetail = () => {
     setSelectedPost(null);
     fetchPosts();
   };
 
-  // Derived State: Apply filters, search queries, and sorting algorithms natively in JavaScript
-  const visible = posts
-    .filter((p) => {
+  const visible = (() => {
+    const source = search.trim() ? searchResults : posts;
+
+    const filtered = source.filter((p) => {
       if (filter !== 'all' && p.status !== filter) return false;
-      if (search.trim()) {
-        const q = search.toLowerCase();
-        return p.title.toLowerCase().includes(q) || p.body?.toLowerCase().includes(q);
-      }
       return true;
-    })
-    .sort((a, b) => {
+    });
+
+    if (search.trim()) {
+      return filtered;
+    }
+
+    return filtered.sort((a, b) => {
       if (sort === 'newest') return new Date(b.createdAt) - new Date(a.createdAt);
       if (sort === 'oldest') return new Date(a.createdAt) - new Date(b.createdAt);
       if (sort === 'popular') return (b.upvotes?.length ?? 0) - (a.upvotes?.length ?? 0);
       if (sort === 'discussed') return (b.comments?.length ?? 0) - (a.comments?.length ?? 0);
       return 0;
     });
+  })();
 
   const answeredCount = posts.filter((p) => p.status === 'answered').length;
   const unansweredCount = posts.filter((p) => p.status === 'unanswered').length;
@@ -532,8 +531,7 @@ export default function CommunityPage() {
       <Navbar />
 
       <main className="max-w-3xl mx-auto px-4 sm:px-6 pt-20 sm:pt-24 pb-8 sm:pb-10 relative z-10">
-        
-        {/* Header Block */}
+
         <div className="flex items-start justify-between gap-3 sm:gap-4 mb-6 sm:mb-8">
           <div className="min-w-0">
             <h1 className="text-xl sm:text-2xl font-serif text-ink tracking-tight">Community Board</h1>
@@ -571,13 +569,17 @@ export default function CommunityPage() {
               placeholder="Search questions…"
               className="w-full pl-9 pr-4 py-2.5 rounded-xl border border-border bg-card text-sm text-ink placeholder-ink-faint focus:outline-none focus:ring-2 focus:ring-accent/25 transition-all"
             />
+            {searchLoading && (
+              <div className="absolute right-3 top-1/2 -translate-y-1/2">
+                <div className="w-4 h-4 border-2 border-accent/30 border-t-accent rounded-full animate-spin" />
+              </div>
+            )}
           </div>
         )}
 
         {/* Filter and Sort Controls */}
         {!loading && !error && total > 0 && (
           <div className="flex items-center justify-between gap-3 mb-5 flex-wrap">
-            {/* Filter tabs */}
             <div className="flex gap-1 p-1 bg-mist rounded-xl w-fit">
               {[
                 { key: 'all', label: 'All' },
@@ -595,7 +597,6 @@ export default function CommunityPage() {
               ))}
             </div>
 
-            {/* Sort dropdown */}
             <select
               value={sort}
               onChange={(e) => setSort(e.target.value)}
@@ -609,7 +610,7 @@ export default function CommunityPage() {
           </div>
         )}
 
-        {/* Render Skeleton Loaders while fetching */}
+        {/* Skeleton Loaders */}
         {loading && (
           <div className="space-y-3">
             {[1, 2, 3, 4, 5].map((i) => (
@@ -625,14 +626,12 @@ export default function CommunityPage() {
           </div>
         )}
 
-        {/* Display Global API Error if fetch fails */}
         {error && (
           <div className="rounded-2xl bg-danger-light border border-danger/15 p-4 text-sm text-danger">
             {error}
           </div>
         )}
 
-        {/* Display Empty State if the database is literally empty */}
         {!loading && !error && total === 0 && (
           <div className="flex flex-col items-center justify-center py-20 text-center">
             <div className="w-16 h-16 rounded-2xl bg-mist flex items-center justify-center mb-4">
@@ -650,14 +649,12 @@ export default function CommunityPage() {
           </div>
         )}
 
-        {/* Display Message if filters hide everything */}
         {!loading && !error && total > 0 && visible.length === 0 && (
           <p className="text-center text-sm text-ink-soft py-16">
             No posts match your current filters.
           </p>
         )}
 
-        {/* Finally, map over the visibly sorted array and render the cards */}
         {!loading && !error && visible.length > 0 && (
           <div className="space-y-3">
             {visible.map((post) => (
@@ -676,7 +673,6 @@ export default function CommunityPage() {
 
       <Footer />
 
-      {/* Conditionally Render Modals (teleported/fixed via HTML dialog tags) */}
       {selectedPost && (
         <PostDetailDialog
           post={selectedPost}
