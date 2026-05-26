@@ -1,9 +1,20 @@
-import React, { useState, useRef, forwardRef } from 'react';
+import React, { useState, useRef, useEffect, forwardRef } from 'react';
 import api from '../../utils/api';
 
 const SearchBar = forwardRef(function SearchBar({ onResults, onLoading }, ref) {
   const [query, setQuery] = useState('');
   const debounceRef = useRef(null);
+  const abortControllerRef = useRef(null);
+  const requestIdRef = useRef(0);
+
+  useEffect(() => {
+    return () => {
+      clearTimeout(debounceRef.current);
+      if (abortControllerRef.current) {
+        abortControllerRef.current.abort();
+      }
+    };
+  }, []);
 
   const handleSearch = async (searchQuery) => {
     if (!searchQuery.trim() || searchQuery.trim().length < 3) {
@@ -11,17 +22,37 @@ const SearchBar = forwardRef(function SearchBar({ onResults, onLoading }, ref) {
       return;
     }
 
+    // Cancel the previous in-flight request
+    if (abortControllerRef.current) {
+      abortControllerRef.current.abort();
+    }
+    const controller = new AbortController();
+    abortControllerRef.current = controller;
+
+    // Track request sequence so stale responses are ignored
+    const requestId = ++requestIdRef.current;
+
     onLoading(true);
     try {
-      const res = await api.post('/search', {
-        query: searchQuery.trim(),
+      const res = await api.post('/search', { query: searchQuery.trim() }, {
+        signal: controller.signal,
       });
-      onResults(res.data.results);
+      if (requestId === requestIdRef.current) {
+        onResults(res.data.results);
+      }
     } catch (error) {
-      console.error('Search failed:', error);
-      onResults([]);
+      // Ignore cancellation errors from AbortController
+      if (error.code === 'ERR_CANCELED' || error.name === 'CanceledError' || error.name === 'AbortError') {
+        return;
+      }
+      if (requestId === requestIdRef.current) {
+        console.error('Search failed:', error);
+        onResults([]);
+      }
     } finally {
-      onLoading(false);
+      if (requestId === requestIdRef.current) {
+        onLoading(false);
+      }
     }
   };
 
@@ -30,11 +61,20 @@ const SearchBar = forwardRef(function SearchBar({ onResults, onLoading }, ref) {
     setQuery(value);
 
     clearTimeout(debounceRef.current);
-    if (value.trim().length >= 3) {
-      debounceRef.current = setTimeout(() => handleSearch(value), 600);
-    } else {
+
+    if (!value.trim() || value.trim().length < 3) {
+      // Abort any in-flight request immediately and clear results
+      if (abortControllerRef.current) {
+        abortControllerRef.current.abort();
+        abortControllerRef.current = null;
+      }
+      requestIdRef.current++;
       onResults(null);
+      onLoading(false);
+      return;
     }
+
+    debounceRef.current = setTimeout(() => handleSearch(value), 300);
   };
 
   const handleSubmit = (e) => {

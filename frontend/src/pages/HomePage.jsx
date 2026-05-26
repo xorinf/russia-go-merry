@@ -9,6 +9,7 @@ import TopSolved from '../components/ui/TopSolved';
 import TrendingIssues from '../components/ui/TrendingIssues';
 import CTA from '../components/ui/CTA';
 import api from '../utils/api';
+import axios from 'axios';
 
 /* Hand-drawn doodle decorations */
 function DoodleElements() {
@@ -108,23 +109,33 @@ export default function HomePage() {
   const [results, setResults] = useState(null);
   const [loading, setLoading] = useState(false);
   const searchBarRef = useRef(null);
+  const trendingAbortRef = useRef(null);
 
   const handleTrendingClick = async (query) => {
+    if (trendingAbortRef.current) {
+      trendingAbortRef.current.abort();
+    }
+    const controller = new AbortController();
+    trendingAbortRef.current = controller;
+
     setLoading(true);
     setResults(null);
     window.scrollTo({ top: 200, behavior: 'smooth' });
 
     try {
-      const res = await api.post('/search', { query });
+      const res = await api.post('/search', { query }, { signal: controller.signal });
       setResults(res.data.results);
-    } catch {
+    } catch (error) {
+      if (axios.isCancel(error) || error.code === 'ERR_CANCELED') return;
       setResults([]);
     } finally {
-      setLoading(false);
+      if (!controller.signal.aborted) {
+        setLoading(false);
+      }
     }
   };
 
-  const isSearchActive = results || loading;
+  const isSearchActive = results !== null || loading;
 
   return (
     <div className="min-h-screen bg-bg grid-bg">
@@ -149,44 +160,52 @@ export default function HomePage() {
           </p>
         </section>
 
-        {/* Search + Categories Row */}
-        {!isSearchActive ? (
-          /* Default layout: Search + Popular Searches | Category Grid side by side */
-          <section className="flex flex-col lg:flex-row items-stretch lg:items-start justify-center gap-5 sm:gap-8 mb-8 sm:mb-10 mx-auto" style={{ maxWidth: '980px' }}>
-            <div className="w-full lg:flex-1 lg:max-w-[540px]">
-              <SearchBar
-                ref={searchBarRef}
-                onResults={setResults}
-                onLoading={setLoading}
-              />
-              <TrendingQueries onQueryClick={handleTrendingClick} />
-            </div>
-            <div className="w-full lg:w-[380px] lg:flex-shrink-0">
-              <CategoryGrid />
-            </div>
-          </section>
-        ) : (
-          /* Search active: Full-width search bar + results below */
-          <section className="max-w-2xl mx-auto mb-10">
+        {/* Search + Categories Row
+            SearchBar is always rendered at the same tree position so React never
+            unmounts it when isSearchActive changes — this prevents the remount
+            race condition where in-flight promises from the old instance fire
+            on the newly mounted one. Only the surrounding layout classes and
+            sibling children change based on state. */}
+        <section
+          className={isSearchActive
+            ? 'max-w-2xl mx-auto mb-10'
+            : 'flex flex-col lg:flex-row items-stretch lg:items-start justify-center gap-5 sm:gap-8 mb-8 sm:mb-10 mx-auto'}
+          style={isSearchActive ? undefined : { maxWidth: '980px' }}
+        >
+          <div className={isSearchActive ? undefined : 'w-full lg:flex-1 lg:max-w-[540px]'}>
+            {/* Single SearchBar instance — never remounted */}
             <SearchBar
               ref={searchBarRef}
               onResults={setResults}
               onLoading={setLoading}
             />
-            {/* Back button to clear search */}
-            <button
-              onClick={() => { setResults(null); setLoading(false); }}
-              className="mt-4 mb-2 inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium text-ink-soft hover:text-ink hover:bg-mist transition-all duration-200"
-            >
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M19 12H5"/>
-                <polyline points="12 19 5 12 12 5"/>
-              </svg>
-              Back to Home
-            </button>
-            <SearchResults results={results} loading={loading} />
-          </section>
-        )}
+
+            {!isSearchActive && <TrendingQueries onQueryClick={handleTrendingClick} />}
+
+            {isSearchActive && (
+              <>
+                {/* Back button to clear search */}
+                <button
+                  onClick={() => { setResults(null); setLoading(false); }}
+                  className="mt-4 mb-2 inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium text-ink-soft hover:text-ink hover:bg-mist transition-all duration-200"
+                >
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M19 12H5"/>
+                    <polyline points="12 19 5 12 12 5"/>
+                  </svg>
+                  Back to Home
+                </button>
+                <SearchResults results={results} loading={loading} />
+              </>
+            )}
+          </div>
+
+          {!isSearchActive && (
+            <div className="w-full lg:w-[380px] lg:flex-shrink-0">
+              <CategoryGrid />
+            </div>
+          )}
+        </section>
 
         {/* Top Solved + Trending Issues Row */}
         {!isSearchActive && (
