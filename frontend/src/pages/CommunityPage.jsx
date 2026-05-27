@@ -313,19 +313,19 @@ function PostDetailDialog({ post: initialPost, onClose, currentUserId, userRole 
                               className={`comment-vote-btn ${hasUpvotedComment ? 'upvoted' : ''}`}
                               title="Upvote"
                             >
-                              {hasUpvotedComment ? '🔥' : '🤌'}
-                              <span className="text-xs">{cUpvotes > 0 ? cUpvotes : ''}</span>
+                              <span className="emoji-upvote">{hasUpvotedComment ? '🔥' : '🤌'}</span>
+                              <span className="text-xs font-semibold">{cUpvotes > 0 ? cUpvotes : ''}</span>
                             </button>
                             <button
                               onClick={handleCommentDownvote}
                               className={`comment-vote-btn ${hasDownvotedComment ? 'downvoted' : ''}`}
                               title="Downvote"
                             >
-                              🥀
-                              <span className="text-xs">{cDownvotes > 0 ? cDownvotes : ''}</span>
+                              <span className="emoji-downvote">🥀</span>
+                              <span className="text-xs font-semibold">{cDownvotes > 0 ? cDownvotes : ''}</span>
                             </button>
                             {netScore < 0 && (
-                              <span className="text-[10px] text-ink-faint ml-1">🧊 melting...</span>
+                              <span className="text-[10px] text-ink-faint ml-1 melting-text">🧊 melting...</span>
                             )}
                             {canResolve && (
                               <button
