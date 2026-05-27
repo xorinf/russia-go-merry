@@ -1,11 +1,14 @@
 import { Router } from 'express';
-import { getAllFAQs, getFAQById, createFAQ, updateFAQ, deleteFAQ } from '../controllers/faqController.js';
+import { getAllFAQs, getFAQById, createFAQ, updateFAQ, deleteFAQ, checkFAQMatch } from '../controllers/faqController.js';
 import { protect, authorize } from '../middleware/auth.js';
 
 const router = Router();
 
 // GET /api/faq — Fetch all FAQs (neatly grouped by category)
 router.get('/', protect, getAllFAQs);
+
+// POST /api/faq/check-match — Check if a question already exists in the FAQ (before posting on community)
+router.post('/check-match', protect, checkFAQMatch);
 
 // GET /api/faq/:id — Fetch a single FAQ by ID
 router.get('/:id', protect, getFAQById);
@@ -20,3 +23,4 @@ router.put('/:id', protect, authorize('admin', 'moderator'), updateFAQ);
 router.delete('/:id', protect, authorize('admin', 'moderator'), deleteFAQ);
 
 export default router;
+

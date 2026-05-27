@@ -241,18 +241,117 @@ function PostDetailDialog({ post: initialPost, onClose, currentUserId, userRole 
               <p className="text-sm text-ink-faint py-2">No comments yet. Be the first to comment!</p>
             ) : (
               <div className="space-y-3">
-                {post.comments.map((c, i) => (
-                  <div key={c._id || i} className="flex items-start gap-2.5">
-                    <Avatar name={c.author?.name} size="sm" />
-                    <div className="flex-1 bg-mist rounded-xl px-3 py-2.5">
-                      <div className="flex items-center gap-2 mb-1">
-                        <span className="text-xs font-medium text-ink">{c.author?.name || 'User'}</span>
-                        <span className="text-xs text-ink-faint">{formatDate(c.createdAt)}</span>
+                {post.comments.map((c, i) => {
+                  const cUpvotes = c.upvotes?.length ?? 0;
+                  const cDownvotes = c.downvotes?.length ?? 0;
+                  const netScore = cUpvotes - cDownvotes;
+                  const hasUpvotedComment = c.upvotes?.some(u => (typeof u === 'object' ? u._id || u : u)?.toString() === currentUserId);
+                  const hasDownvotedComment = c.downvotes?.some(u => (typeof u === 'object' ? u._id || u : u)?.toString() === currentUserId);
+                  // Opacity fades as net score decreases: 0 → 100%, -4 → 20%, -5 → deleted
+                  const commentOpacity = netScore >= 0 ? 1 : Math.max(0.15, 1 - (Math.abs(netScore) * 0.2));
+
+                  const handleCommentUpvote = async () => {
+                    try {
+                      const res = await api.post(`/community/${post._id}/comments/${c._id}/upvote`);
+                      setPost(prev => ({
+                        ...prev,
+                        comments: prev.comments.map(cm =>
+                          cm._id === c._id ? { ...cm, upvotes: res.data.upvotedByMe ? [...(cm.upvotes || []), currentUserId] : (cm.upvotes || []).filter(u => (typeof u === 'object' ? u._id : u)?.toString() !== currentUserId), downvotes: (cm.downvotes || []).filter(u => (typeof u === 'object' ? u._id : u)?.toString() !== currentUserId) } : cm
+                        )
+                      }));
+                    } catch (e) { console.error(e); }
+                  };
+
+                  const handleCommentDownvote = async () => {
+                    try {
+                      const res = await api.post(`/community/${post._id}/comments/${c._id}/downvote`);
+                      if (res.data.deleted) {
+                        // Play Faah sound and animate out
+                        try { new Audio('/fahhhhh.mp3').play(); } catch (_) {}
+                        const el = document.getElementById(`comment-${c._id}`);
+                        if (el) {
+                          el.style.setProperty('--current-opacity', String(commentOpacity));
+                          el.classList.add('comment-dying');
+                          setTimeout(() => {
+                            setPost(prev => ({ ...prev, comments: prev.comments.filter(cm => cm._id !== c._id) }));
+                          }, 800);
+                        } else {
+                          setPost(prev => ({ ...prev, comments: prev.comments.filter(cm => cm._id !== c._id) }));
+                        }
+                        return;
+                      }
+                      setPost(prev => ({
+                        ...prev,
+                        comments: prev.comments.map(cm =>
+                          cm._id === c._id ? { ...cm, downvotes: res.data.downvotedByMe ? [...(cm.downvotes || []), currentUserId] : (cm.downvotes || []).filter(u => (typeof u === 'object' ? u._id : u)?.toString() !== currentUserId), upvotes: (cm.upvotes || []).filter(u => (typeof u === 'object' ? u._id : u)?.toString() !== currentUserId) } : cm
+                        )
+                      }));
+                    } catch (e) { console.error(e); }
+                  };
+
+                  return (
+                    <div
+                      key={c._id || i}
+                      id={`comment-${c._id}`}
+                      className="flex items-start gap-2.5 transition-opacity duration-300 relative"
+                      style={{ opacity: commentOpacity }}
+                    >
+                      <Avatar name={c.author?.name} size="sm" />
+                      <div className="flex-1 bg-mist rounded-xl px-3 py-2.5 relative overflow-hidden">
+                        {/* Fire glow background for upvoted comments */}
+                        <div className={`comment-fire-glow ${netScore > 2 ? 'active' : ''}`} />
+                        <div className="relative z-10">
+                          <div className="flex items-center gap-2 mb-1 flex-wrap">
+                            <span className="text-xs font-medium text-ink">{c.author?.name || 'User'}</span>
+                            {c.verified && <span className="verified-badge">✅ Verified</span>}
+                            <span className="text-xs text-ink-faint">{formatDate(c.createdAt)}</span>
+                          </div>
+                          <p className="text-sm text-ink/75 leading-relaxed">{c.body}</p>
+                          <div className="flex items-center gap-2 mt-2">
+                            <button
+                              onClick={handleCommentUpvote}
+                              className={`comment-vote-btn ${hasUpvotedComment ? 'upvoted' : ''}`}
+                              title="Upvote"
+                            >
+                              {hasUpvotedComment ? '🔥' : '🤌'}
+                              <span className="text-xs">{cUpvotes > 0 ? cUpvotes : ''}</span>
+                            </button>
+                            <button
+                              onClick={handleCommentDownvote}
+                              className={`comment-vote-btn ${hasDownvotedComment ? 'downvoted' : ''}`}
+                              title="Downvote"
+                            >
+                              🥀
+                              <span className="text-xs">{cDownvotes > 0 ? cDownvotes : ''}</span>
+                            </button>
+                            {netScore < 0 && (
+                              <span className="text-[10px] text-ink-faint ml-1">🧊 melting...</span>
+                            )}
+                            {canResolve && (
+                              <button
+                                onClick={async () => {
+                                  try {
+                                    const res = await api.patch(`/community/${post._id}/comments/${c._id}/verify`);
+                                    setPost(prev => ({
+                                      ...prev,
+                                      comments: prev.comments.map(cm =>
+                                        cm._id === c._id ? { ...cm, verified: res.data.verified } : cm
+                                      )
+                                    }));
+                                  } catch (e) { console.error(e); }
+                                }}
+                                className="ml-auto text-[10px] text-ink-faint hover:text-accent transition-colors"
+                                title={c.verified ? 'Unverify answer' : 'Mark as verified answer'}
+                              >
+                                {c.verified ? 'Unverify' : '✅ Verify'}
+                              </button>
+                            )}
+                          </div>
+                        </div>
                       </div>
-                      <p className="text-sm text-ink/75 leading-relaxed">{c.body}</p>
                     </div>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
             )}
           </div>
@@ -297,6 +396,10 @@ function CreatePostDialog({ onClose, onCreated }) {
   const [body, setBody] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  // FAQ duplicate detection state
+  const [faqMatch, setFaqMatch] = useState(null);
+  const [faqCheckLoading, setFaqCheckLoading] = useState(false);
+  const faqCheckTimerRef = useRef(null);
 
   useEffect(() => {
     const dialog = dialogRef.current;
@@ -324,11 +427,39 @@ function CreatePostDialog({ onClose, onCreated }) {
     return () => dialog.removeEventListener('close', handleClose);
   }, [onClose]);
 
+  // Debounced FAQ match check when title changes
+  useEffect(() => {
+    if (faqCheckTimerRef.current) clearTimeout(faqCheckTimerRef.current);
+    const q = title.trim();
+    if (q.length < 10) {
+      setFaqMatch(null);
+      setFaqCheckLoading(false);
+      return;
+    }
+    setFaqCheckLoading(true);
+    faqCheckTimerRef.current = setTimeout(async () => {
+      try {
+        const res = await api.post('/faq/check-match', { query: q });
+        setFaqMatch(res.data.matched ? res.data.faq : null);
+      } catch (e) {
+        console.error('FAQ match check failed:', e);
+        setFaqMatch(null);
+      } finally {
+        setFaqCheckLoading(false);
+      }
+    }, 500);
+    return () => { if (faqCheckTimerRef.current) clearTimeout(faqCheckTimerRef.current); };
+  }, [title]);
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
     if (!title.trim() || !body.trim()) {
       setError('Both title and description are required.');
+      return;
+    }
+    if (faqMatch) {
+      setError('This question is already answered in our FAQ. Please check the FAQ page first.');
       return;
     }
     setLoading(true);
@@ -342,6 +473,8 @@ function CreatePostDialog({ onClose, onCreated }) {
       setLoading(false);
     }
   };
+
+  const isSubmitDisabled = !title.trim() || !body.trim() || !!faqMatch || faqCheckLoading;
 
   return (
     <dialog
@@ -382,8 +515,32 @@ function CreatePostDialog({ onClose, onCreated }) {
               required
               className="w-full rounded-xl border border-border bg-mist px-3 py-2.5 text-sm text-ink placeholder-ink-faint focus:outline-none focus:ring-2 focus:ring-accent/25 focus:bg-card transition-all"
             />
-            <p className="text-xs text-ink-faint mt-1 text-right">{title.length}/150</p>
+            <div className="flex items-center justify-between mt-1">
+              <div>
+                {faqCheckLoading && (
+                  <span className="text-xs text-ink-faint flex items-center gap-1">
+                    <span className="w-3 h-3 border border-accent/30 border-t-accent rounded-full animate-spin inline-block" />
+                    Checking FAQ...
+                  </span>
+                )}
+              </div>
+              <p className="text-xs text-ink-faint text-right">{title.length}/150</p>
+            </div>
           </div>
+
+          {/* FAQ match warning banner */}
+          {faqMatch && (
+            <div className="faq-match-banner">
+              <span>📖</span>
+              <div>
+                <p className="font-medium">This question is already answered in our FAQ!</p>
+                <p className="text-xs mt-0.5 opacity-80">
+                  <strong>"{faqMatch.question}"</strong>
+                </p>
+                <a href="/faq" className="text-xs mt-1 inline-block">→ Go to FAQ page</a>
+              </div>
+            </div>
+          )}
 
           <div>
             <label htmlFor="post-body" className="block text-xs font-medium text-ink-soft mb-1.5">
@@ -410,7 +567,7 @@ function CreatePostDialog({ onClose, onCreated }) {
             <Button
               type="submit"
               loading={loading}
-              disabled={!title.trim() || !body.trim()}
+              disabled={isSubmitDisabled}
               className="flex-1"
             >
               Post Question

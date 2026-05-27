@@ -5,6 +5,7 @@ import api from '../utils/api';
 import { useAuth } from '../hooks/useAuth';
 import Badge from '../components/ui/Badge';
 import Spinner from '../components/ui/Spinner';
+import WordCloud from '../components/ui/WordCloud';
 
 export default function AdminPage() {
   const { user } = useAuth();
@@ -262,20 +263,19 @@ export default function AdminPage() {
                 </div>
 
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                  {/* Popular Queries */}
+                  {/* Popular Queries — Word Cloud */}
                   <div className="bg-card border border-border rounded-2xl p-5 shadow-subtle">
-                    <h3 className="text-sm font-serif text-ink mb-4">Popular Queries</h3>
+                    <h3 className="text-sm font-serif text-ink mb-4">Popular Queries — Word Cloud</h3>
                     {analytics?.popularQueries?.length === 0 ? (
                       <p className="text-sm text-ink-soft">No search data yet.</p>
                     ) : (
-                      <div className="space-y-3">
-                        {analytics?.popularQueries?.map((q, i) => (
-                          <div key={i} className="flex justify-between items-center border-b border-border/40 pb-2 last:border-0">
-                            <span className="text-sm font-medium text-ink">"{q.query}"</span>
-                            <span className="text-xs bg-mist px-2.5 py-1 rounded-full text-ink-soft font-semibold">{q.count} searches</span>
-                          </div>
-                        ))}
-                      </div>
+                      <WordCloud
+                        words={(analytics?.popularQueries || []).map(q => ({ query: q.query, count: q.count }))}
+                        onWordClick={(query) => {
+                          // Could navigate to search or highlight
+                          console.log('Word clicked:', query);
+                        }}
+                      />
                     )}
                   </div>
 

@@ -155,3 +155,106 @@ export const deletePost = async (req, res) => {
     res.status(500).json({ message: 'Server error', error: error.message });
   }
 };
+
+// POST /api/community/:id/comments/:commentId/upvote — Toggle 🤌🔥 upvote on a comment
+export const toggleCommentUpvote = async (req, res) => {
+  try {
+    const post = await CommunityPost.findById(req.params.id);
+    if (!post) return res.status(404).json({ message: 'Post not found.' });
+
+    const comment = post.comments.id(req.params.commentId);
+    if (!comment) return res.status(404).json({ message: 'Comment not found.' });
+
+    const userId = req.user._id.toString();
+    const alreadyUpvoted = comment.upvotes.map(u => u.toString()).includes(userId);
+
+    if (alreadyUpvoted) {
+      // Remove upvote
+      comment.upvotes = comment.upvotes.filter(u => u.toString() !== userId);
+    } else {
+      // Add upvote, remove from downvotes if present
+      comment.upvotes.push(req.user._id);
+      comment.downvotes = comment.downvotes.filter(u => u.toString() !== userId);
+    }
+
+    await post.save();
+
+    const netScore = comment.upvotes.length - comment.downvotes.length;
+    res.json({
+      upvotes: comment.upvotes.length,
+      downvotes: comment.downvotes.length,
+      netScore,
+      upvotedByMe: !alreadyUpvoted,
+    });
+  } catch (error) {
+    res.status(500).json({ message: 'Server error', error: error.message });
+  }
+};
+
+// POST /api/community/:id/comments/:commentId/downvote — Toggle 🥀🧊 downvote on a comment
+// When net score reaches -5, the comment is auto-deleted and { deleted: true } is returned
+export const toggleCommentDownvote = async (req, res) => {
+  try {
+    const post = await CommunityPost.findById(req.params.id);
+    if (!post) return res.status(404).json({ message: 'Post not found.' });
+
+    const comment = post.comments.id(req.params.commentId);
+    if (!comment) return res.status(404).json({ message: 'Comment not found.' });
+
+    const userId = req.user._id.toString();
+    const alreadyDownvoted = comment.downvotes.map(u => u.toString()).includes(userId);
+
+    if (alreadyDownvoted) {
+      // Remove downvote
+      comment.downvotes = comment.downvotes.filter(u => u.toString() !== userId);
+    } else {
+      // Add downvote, remove from upvotes if present
+      comment.downvotes.push(req.user._id);
+      comment.upvotes = comment.upvotes.filter(u => u.toString() !== userId);
+    }
+
+    const netScore = comment.upvotes.length - comment.downvotes.length;
+
+    // Auto-delete comment if net score reaches -5 (play Faah on frontend)
+    if (netScore <= -5) {
+      comment.deleteOne();
+      await post.save();
+      return res.json({
+        deleted: true,
+        message: 'Comment obliterated. Faah! 🥀',
+      });
+    }
+
+    await post.save();
+
+    res.json({
+      upvotes: comment.upvotes.length,
+      downvotes: comment.downvotes.length,
+      netScore,
+      downvotedByMe: !alreadyDownvoted,
+      deleted: false,
+    });
+  } catch (error) {
+    res.status(500).json({ message: 'Server error', error: error.message });
+  }
+};
+
+// PATCH /api/community/:id/comments/:commentId/verify — Mark a comment as verified top answer
+export const verifyComment = async (req, res) => {
+  try {
+    const post = await CommunityPost.findById(req.params.id);
+    if (!post) return res.status(404).json({ message: 'Post not found.' });
+
+    const comment = post.comments.id(req.params.commentId);
+    if (!comment) return res.status(404).json({ message: 'Comment not found.' });
+
+    // Toggle verified status
+    comment.verified = !comment.verified;
+    await post.save();
+
+    res.json({ verified: comment.verified, commentId: req.params.commentId });
+  } catch (error) {
+    res.status(500).json({ message: 'Server error', error: error.message });
+  }
+};
+

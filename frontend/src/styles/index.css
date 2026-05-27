@@ -186,3 +186,211 @@ select option {
     font-size: 14px;
   }
 }
+
+/* ═══════════════════════════════════════════════════════════════
+   Rubber Duck 🐤 — Cursor companion styles
+   ═══════════════════════════════════════════════════════════════ */
+.rubber-duck {
+  position: fixed;
+  z-index: 99999;
+  pointer-events: none;
+  font-size: 28px;
+  line-height: 1;
+  transform: translate(-50%, -50%);
+  animation: duck-appear 0.4s cubic-bezier(0.34, 1.56, 0.64, 1) forwards,
+             duck-waddle 0.6s ease-in-out infinite;
+  filter: drop-shadow(0 2px 4px rgba(0,0,0,0.15));
+  opacity: 0;
+}
+
+@keyframes duck-appear {
+  0% {
+    opacity: 0;
+    transform: translate(-50%, -50%) scale(0.3) rotate(-20deg);
+  }
+  100% {
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(1) rotate(0deg);
+  }
+}
+
+@keyframes duck-waddle {
+  0%, 100% {
+    transform: translate(-50%, -50%) rotate(-3deg);
+  }
+  50% {
+    transform: translate(-50%, -50%) rotate(3deg) translateY(-2px);
+  }
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   Word Cloud — Interactive query visualization
+   ═══════════════════════════════════════════════════════════════ */
+.word-cloud {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 6px 12px;
+  padding: 16px 8px;
+  min-height: 80px;
+}
+
+.word-cloud-item {
+  display: inline-block;
+  padding: 4px 10px;
+  border: none;
+  background: none;
+  cursor: pointer;
+  line-height: 1.3;
+  border-radius: 8px;
+  transition: all 0.25s cubic-bezier(0.22, 0.61, 0.36, 1);
+  transform: rotate(var(--rotation, 0deg));
+  white-space: nowrap;
+}
+
+.word-cloud-item:hover {
+  background: rgba(90, 122, 90, 0.1);
+  transform: rotate(0deg) scale(1.15);
+  opacity: 1 !important;
+}
+
+.word-cloud-item:active {
+  transform: rotate(0deg) scale(0.95);
+}
+
+.word-cloud-empty {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   Comment Fire/Ice Voting — Visual effects
+   ═══════════════════════════════════════════════════════════════ */
+.comment-vote-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 8px;
+  border-radius: 999px;
+  border: 1px solid transparent;
+  background: none;
+  font-size: 13px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  line-height: 1;
+}
+
+.comment-vote-btn:hover {
+  background: rgba(0, 0, 0, 0.04);
+}
+
+.comment-vote-btn.upvoted {
+  background: rgba(255, 100, 0, 0.08);
+  border-color: rgba(255, 100, 0, 0.2);
+}
+
+.comment-vote-btn.downvoted {
+  background: rgba(100, 149, 237, 0.08);
+  border-color: rgba(100, 149, 237, 0.2);
+}
+
+/* Fire glow effect for upvoted comments */
+.comment-fire-glow {
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  background: radial-gradient(ellipse at bottom, rgba(255, 100, 0, 0.06), transparent 70%);
+}
+
+.comment-fire-glow.active {
+  opacity: 1;
+}
+
+/* Ice melt effect for downvoted comments */
+@keyframes ice-melt {
+  0% { filter: hue-rotate(0deg); }
+  50% { filter: hue-rotate(10deg) brightness(1.05); }
+  100% { filter: hue-rotate(0deg); }
+}
+
+/* Comment deletion animation */
+@keyframes comment-faah {
+  0% {
+    opacity: var(--current-opacity, 0.15);
+    transform: scale(1);
+  }
+  30% {
+    opacity: 0.3;
+    transform: scale(1.03);
+  }
+  100% {
+    opacity: 0;
+    transform: scale(0.8) translateY(10px);
+    max-height: 0;
+    padding: 0;
+    margin: 0;
+    overflow: hidden;
+  }
+}
+
+.comment-dying {
+  animation: comment-faah 0.8s cubic-bezier(0.22, 0.61, 0.36, 1) forwards;
+}
+
+/* Verified comment badge glow */
+.verified-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  font-size: 10px;
+  font-weight: 700;
+  color: #5A7A5A;
+  background: rgba(90, 122, 90, 0.1);
+  padding: 2px 8px;
+  border-radius: 999px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+/* FAQ match warning banner */
+.faq-match-banner {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 14px;
+  background: rgba(255, 193, 7, 0.08);
+  border: 1px solid rgba(255, 193, 7, 0.25);
+  border-radius: 12px;
+  font-size: 13px;
+  color: #856404;
+  animation: banner-slide-in 0.3s ease;
+}
+
+@keyframes banner-slide-in {
+  from {
+    opacity: 0;
+    transform: translateY(-8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.faq-match-banner a {
+  color: #5A7A5A;
+  font-weight: 600;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.faq-match-banner a:hover {
+  color: #3D5E3D;
+}
+

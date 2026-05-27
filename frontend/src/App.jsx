@@ -10,6 +10,7 @@ import FAQPage from './pages/FAQPage';
 import CommunityPage from './pages/CommunityPage';
 import AdminPage from './pages/AdminPage';
 import Spinner from './components/ui/Spinner';
+import RubberDuck from './components/ui/RubberDuck';
 // Admin pages
 import AdminLogin from './admin/pages/AdminLogin';
 import AdminDashboard from './admin/pages/AdminDashboard';
@@ -110,6 +111,8 @@ export default function App() {
       <AuthProvider>
         {/* 3. AppRoutes actually renders the correct page based on the URL */}
         <AppRoutes />
+        {/* 4. Rubber duck cursor companion 🐤 — appears after 3s idle */}
+        <RubberDuck />
       </AuthProvider>
     </BrowserRouter>
   );

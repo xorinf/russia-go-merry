@@ -14,6 +14,20 @@ const commentSchema = new mongoose.Schema(
       trim: true,
       maxlength: 1000, // Enforces a reasonable limit to prevent database bloat
     },
+    upvotes: {
+      type: [mongoose.Schema.Types.ObjectId],
+      ref: 'User',
+      default: [], // Stores IDs of users who upvoted (🤌🔥) this comment
+    },
+    downvotes: {
+      type: [mongoose.Schema.Types.ObjectId],
+      ref: 'User',
+      default: [], // Stores IDs of users who downvoted (🥀🧊) this comment
+    },
+    verified: {
+      type: Boolean,
+      default: false, // Moderators can mark a comment as the verified "top answer"
+    },
   },
   { timestamps: true } // Automatically adds createdAt and updatedAt to each comment
 );

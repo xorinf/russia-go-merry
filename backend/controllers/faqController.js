@@ -110,3 +110,65 @@ export const deleteFAQ = async (req, res) => {
     res.status(500).json({ message: 'Server error', error: error.message });
   }
 };
+
+// POST /api/faq/check-match — Check if a user's question already exists in the FAQ
+// Used by the community board to prevent duplicate questions
+export const checkFAQMatch = async (req, res) => {
+  try {
+    const { query } = req.body;
+
+    if (!query || !query.trim()) {
+      return res.status(400).json({ message: 'query string is required.' });
+    }
+
+    // Generate embedding for the user's question
+    const embedding = await generateEmbedding(query.trim());
+
+    // Run vector search against the FAQ collection
+    const mongoose = (await import('mongoose')).default;
+    const db = mongoose.connection.db;
+    const collection = db.collection('yaksha_faq_faqs');
+
+    const pipeline = [
+      {
+        $vectorSearch: {
+          index: 'vector_index',
+          path: 'embedding',
+          queryVector: embedding,
+          numCandidates: 50,
+          limit: 3,
+        },
+      },
+      {
+        $project: {
+          _id: 1,
+          question: 1,
+          answer: 1,
+          category: 1,
+          score: { $meta: 'vectorSearchScore' },
+        },
+      },
+    ];
+
+    const results = await collection.aggregate(pipeline).toArray();
+
+    // Check if the top result has a high similarity score (threshold: 0.82)
+    const topMatch = results[0] || null;
+    const matched = topMatch && topMatch.score >= 0.82;
+
+    res.json({
+      matched,
+      faq: matched ? {
+        _id: topMatch._id,
+        question: topMatch.question,
+        answer: topMatch.answer,
+        category: topMatch.category,
+        similarity: topMatch.score,
+      } : null,
+    });
+  } catch (error) {
+    console.error('FAQ match check error:', error);
+    res.status(500).json({ message: 'Server error', error: error.message });
+  }
+};
+

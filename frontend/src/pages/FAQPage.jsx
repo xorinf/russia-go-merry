@@ -2,6 +2,7 @@ import React, { useEffect, useMemo, useRef, useState } from 'react';
 import Navbar from '../components/layout/Navbar';
 import Footer from '../components/layout/Footer';
 import SearchBar from '../components/ui/SearchBar';
+import WordCloud from '../components/ui/WordCloud';
 import { FAQDoodles } from '../components/ui/PageDoodles';
 import api from '../utils/api';
 
@@ -619,6 +620,7 @@ export default function FAQPage() {
   const [sortOption, setSortOption] = useState('relevant');
   const [visibleCount, setVisibleCount] = useState(8);
   const searchBarRef = useRef(null);
+  const [trendingWords, setTrendingWords] = useState([]);
 
   useEffect(() => {
     api.get('/faq')
@@ -628,6 +630,11 @@ export default function FAQPage() {
       })
       .catch(() => setError('Failed to load FAQs. Please try again.'))
       .finally(() => setLoading(false));
+
+    // Fetch trending queries for the word cloud
+    api.get('/search/trending')
+      .then((res) => setTrendingWords((res.data.trending || []).map(t => ({ query: t.query, count: t.count }))))
+      .catch(() => {});
   }, []);
 
   const categories = useMemo(() => Object.keys(grouped).sort(), [grouped]);
@@ -770,6 +777,23 @@ export default function FAQPage() {
               onSelect={handleCategoryOpen}
             />
           </div>
+
+          {/* Trending Queries Word Cloud */}
+          {trendingWords.length > 0 && !showDropdown && !activeCategory && !activeQuestion && !searchActive && (
+            <div className={`mt-5 transition-all duration-300`}>
+              <p className="text-xs font-semibold text-ink-faint uppercase tracking-wide mb-2">Trending searches</p>
+              <div className="bg-card/60 rounded-2xl border border-border/50 shadow-subtle">
+                <WordCloud
+                  words={trendingWords}
+                  onWordClick={(query) => {
+                    setSearchQuery(query);
+                    handleSearchChange(query);
+                  }}
+                  maxWords={20}
+                />
+              </div>
+            </div>
+          )}
         </section>
 
         {loading && (

@@ -7,6 +7,9 @@ import {
   addComment,
   resolvePost,
   deletePost,
+  toggleCommentUpvote,
+  toggleCommentDownvote,
+  verifyComment,
 } from '../controllers/communityController.js';
 import { searchCommunityPosts } from '../controllers/communitySearchController.js';
 import { protect, authorize } from '../middleware/auth.js';
@@ -20,6 +23,9 @@ router.get('/:id', protect, getPostById);
 router.post('/', protect, createPost);
 router.post('/:id/upvote', protect, toggleUpvote);
 router.post('/:id/comments', protect, addComment);
+router.post('/:id/comments/:commentId/upvote', protect, toggleCommentUpvote);
+router.post('/:id/comments/:commentId/downvote', protect, toggleCommentDownvote);
+router.patch('/:id/comments/:commentId/verify', protect, authorize('admin', 'moderator'), verifyComment);
 router.patch('/:id/resolve', protect, resolvePost);
 router.delete('/:id', protect, authorize('admin', 'moderator'), deletePost);
 

@@ -65,3 +65,10 @@ coverage/
 *.bak
 *.tmp
 *.temp
+
+# Scraper output
+scraper.js
+endpoints.txt
+faqs.json
+
+

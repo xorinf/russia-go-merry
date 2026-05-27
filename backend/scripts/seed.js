@@ -41,15 +41,12 @@ const seed = async () => {
     await FAQ.deleteMany(); // Clear existing FAQs
 
     // Read the raw FAQ data from your local JSON file
-    const faqFilePath = path.join(__dirname, '..', '..', 'samagama_faq.json');
+    const faqFilePath = path.join(__dirname, '..', '..', 'faqs.json');
     const faqDataRaw = await fs.readFile(faqFilePath, 'utf-8');
-    const faqData = JSON.parse(faqDataRaw);
-
-    // Use flat faqs array directly
-    const allFaqs = faqData.faqs.map(faq => ({
+    const allFaqs = JSON.parse(faqDataRaw).map(faq => ({
       question: faq.question,
       answer: faq.answer,
-      category: faq.section,
+      category: faq.category || 'General',
     }));
 
     console.log(`Found ${allFaqs.length} FAQs. Generating embeddings...`);
